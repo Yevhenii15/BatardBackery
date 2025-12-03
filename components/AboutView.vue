@@ -1,43 +1,37 @@
+<script setup lang="ts">
+import { computed, onMounted } from "vue";
+import { useCompany } from "~/composables/useCompany";
+
+const { company, loading, error, getCompany } = useCompany();
+
+onMounted(() => {
+  getCompany();
+});
+
+const shortDescription = computed(() => company.value?.shortDescription || "");
+const fullDescription = computed(() => company.value?.description || "");
+</script>
+
 <template>
   <section class="about">
     <div class="about-container">
       <h2 class="about-title">OM OS</h2>
+
+      <!-- subtitle from DB -->
       <h3 class="about-subtitle">
-        IDEEN TIL BATARD BAKERY STARTEDE<br />
-        FOR MANGE ÅR SIDEN!
+        {{ shortDescription }}
       </h3>
 
       <div class="about-text">
-        <p>
-          Batard Bakery er en passioneret og innovativ bagerivirksomhed med dybe rødder i fødevarebranchen,
-          især inden for bageribranchen. Grundlagt af en erfaren gruppe fagfolk, der har arbejdet inden for
-          fødevareindustrien i mange år, bringer vi ekspertise og kærlighed til håndværket til hver eneste
-          brød og kage, vi bager.
-        </p>
+        <!-- full text from DB -->
+        <p>{{ fullDescription }}</p>
 
-        <p>
-          Siden sommeren 2023 har vi serviceret Vejers Strand og omegnens mange turister fra vores første
-          butik med et bredt udvalg af friskbagte surdejsbrød, delikate stykker og vores fantastiske
-          kageudvalg. Vores bagværk er lavet med de bedste råvarer og en omhyggelig proces, der sikrer høj
-          kvalitet og uforglemmelig smag.
-        </p>
+        <!-- static location (can also be moved to DB later if you want) -->
+        <p class="about-location">Lokation: Batard Bakery Vejers Strand</p>
 
-        <p>
-          Vores mission er at udvide kendskabet til Batard Bakery og blive danskernes foretrukne sted for
-          friskbagte brød. Men vi ønsker også at være det naturlige valg, når man har brug for en god kop
-          kaffe eller nogle hyggelige timer med veninderne. Vi drømmer om at skabe et sted, hvor fællesskab
-          og kvalitet går hånd i hånd, og hvor hver kunde føler sig velkommen.
-        </p>
-
-        <p>
-          Vi er stolte af vores dedikation til håndværket og vores engagement i at tilbyde en uovertruffen
-          oplevelse til vores kunder. Batard Bakery er mere end bare en bageri – det er et sted, hvor minder
-          skabes, og hvor hver bid er en fornøjelse.
-        </p>
-
-        <p class="about-location">
-          Lokation: Batard Bakery Vejers Strand
-        </p>
+        <!-- optional: small error / loading -->
+        <p v-if="loading" class="about-status">Henter tekst…</p>
+        <p v-if="error" class="about-status error">{{ error }}</p>
       </div>
     </div>
   </section>
@@ -46,7 +40,7 @@
 <style>
 /* Background and layout */
 .about {
-  background-color: #211a1a; 
+  background-color: #211a1a;
   color: #fff;
   padding: 6rem 1rem;
   text-align: center;
@@ -90,6 +84,17 @@
   font-style: italic;
   font-size: 1.1rem;
   color: #ddd;
+}
+
+/* Status messages */
+.about-status {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  color: #cccccc;
+}
+
+.about-status.error {
+  color: #ffb3b3;
 }
 
 /* Responsive */

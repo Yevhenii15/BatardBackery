@@ -2,11 +2,11 @@
   <section class="contact-section">
     <!-- LEFT SIDE (Form) -->
     <div class="contact-left">
-      <h2 class="contact-title">KONTAKT OS</h2>
+      <h2 class="contact-title">CONTACT US</h2>
       <h3 class="contact-subtitle">
-        VI SVARER ALLE<br />
-        HENVENDELSER SÅ HURTIGT<br />
-        SOM MULIGT
+        WE RESPOND TO ALL<br />
+        INQUIRIES AS QUICKLY<br />
+        AS POSSIBLE
       </h3>
 
       <form class="contact-form">
@@ -28,16 +28,17 @@
 
     <!-- RIGHT SIDE (Order Panel) -->
     <div class="contact-right">
-      <h2 class="order-title">BESTIL DINE VARER<br />ONLINE</h2>
-      <p class="order-subtitle">AFHENT DEREFTER DIREKTE I VORES BUTIK</p>
+      <h2 class="order-title">ORDER OUR PASTRY<br />ONLINE</h2>
+      <p class="order-subtitle">THEN PICK UP DIRECTLY IN OUR STORE</p>
 
-      <button class="order-btn">BESTIL - VEJERS STRAND</button>
+      <NuxtLink to="/products" class="order-btn"
+        >ORDER - VEJERS STRAND</NuxtLink
+      >
     </div>
   </section>
 </template>
 
 <style>
-
 /* ————————————————
    GENERAL LAYOUT
 ——————————————— */
@@ -52,7 +53,7 @@
    LEFT SIDE
 ——————————————— */
 .contact-left {
-  width: 40%;       
+  width: 40%;
   background: #ebeaea;
   padding: 5rem 4rem;
   color: #231f20;
@@ -78,20 +79,21 @@
 ——————————————— */
 .contact-form {
   max-width: 550px;
-  display: flex;          
-  flex-direction: column; 
-  align-items: center;    
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .row {
-  width: 100%;            
+  width: 100%;
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-input, textarea {
-  width: 100%;            
+input,
+textarea {
+  width: 100%;
   padding: 1rem;
   border: 1px solid #9a9a9a;
   background: transparent;
@@ -99,7 +101,7 @@ input, textarea {
   font-family: inherit;
 }
 
-textarea { 
+textarea {
   width: 93%;
   height: 150px;
   margin-bottom: 1.5rem;
@@ -114,10 +116,9 @@ textarea {
   font-size: 1.2rem;
   cursor: pointer;
   transition: 0.3s ease;
-  margin-top: 1rem;       
-  align-self: center;     
+  margin-top: 1rem;
+  align-self: center;
 }
-
 
 .send-btn:hover {
   background: #55625c;
@@ -146,7 +147,6 @@ textarea {
   line-height: 1.2;
 }
 
-
 .order-subtitle {
   margin-top: 1.5rem;
   font-size: 1.2rem;
@@ -166,6 +166,7 @@ textarea {
   font-weight: 700;
   cursor: pointer;
   transition: 0.3s ease;
+  text-decoration: none;
 }
 
 .order-btn:hover {

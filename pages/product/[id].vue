@@ -125,6 +125,7 @@
     <h2>Product not found</h2>
     <NuxtLink to="/products" class="back-link"> Back to products </NuxtLink>
   </section>
+  <FooterView />
 </template>
 
 <script setup lang="ts">
@@ -132,6 +133,7 @@ import { onMounted, computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useProduct } from "~/composables/useProduct";
 import { useCart } from "~/composables/useCart";
+import FooterView from "~/components/FooterView.vue";
 import Navbar from "~/components/NavbarView.vue";
 
 const route = useRoute();
@@ -245,7 +247,7 @@ const confirmAddToCart = () => {
 .product-details {
   padding: 6rem 2rem;
   background: #f4f4f4;
-  min-height: 100vh;
+  min-height: 80vh;
 }
 
 .product-wrapper {

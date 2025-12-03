@@ -136,6 +136,7 @@
       </div>
     </section>
   </section>
+  <FooterView />
 </template>
 
 <script setup lang="ts">
@@ -143,6 +144,7 @@ import { computed, onMounted, ref } from "vue";
 import { useCategory } from "~/composables/useCategory";
 import { useProduct } from "~/composables/useProduct";
 import { useCart } from "~/composables/useCart";
+import FooterView from "~/components/FooterView.vue";
 import Navbar from "~/components/NavbarView.vue";
 
 const {
@@ -248,6 +250,7 @@ onMounted(async () => {
 .order-of-products {
   position: relative;
   top: 80px;
+  margin-bottom: 80px;
 }
 
 /* ===== BACK BUTTON ===== */
