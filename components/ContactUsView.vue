@@ -1,3 +1,60 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { useContactMessages } from "~/composables/useContactMessages";
+
+const firstName = ref("");
+const lastName = ref("");
+const email = ref("");
+const subject = ref("");
+const message = ref("");
+
+const localError = ref<string | null>(null);
+const success = ref<string | null>(null);
+
+const { sendMessage, loading, error } = useContactMessages();
+
+const onSubmit = async () => {
+  localError.value = null;
+  success.value = null;
+
+  if (
+    !firstName.value.trim() ||
+    !lastName.value.trim() ||
+    !email.value.trim() ||
+    !subject.value.trim() ||
+    !message.value.trim()
+  ) {
+    localError.value = "Please fill in all required fields (*).";
+    return;
+  }
+
+  const payload = {
+    firstName: firstName.value.trim(),
+    lastName: lastName.value.trim(),
+    subject: subject.value.trim(),
+    email: email.value.trim(),
+    message: message.value.trim(),
+  };
+
+  const created = await sendMessage(payload);
+
+  if (!created) {
+    localError.value =
+      error.value || "Failed to send message. Please try again later.";
+    return;
+  }
+
+  success.value = "Thank you! Your message has been sent.";
+
+  // Reset fields
+  firstName.value = "";
+  lastName.value = "";
+  email.value = "";
+  subject.value = "";
+  message.value = "";
+};
+</script>
+
 <template>
   <section class="contact-section">
     <!-- LEFT SIDE (Form) -->
@@ -9,31 +66,40 @@
         AS POSSIBLE
       </h3>
 
-      <form class="contact-form">
+      <form class="contact-form" @submit.prevent="onSubmit">
         <div class="row">
-          <input type="text" placeholder="Fornavn*" />
-          <input type="text" placeholder="Efternavn*" />
+          <input v-model="firstName" type="text" placeholder="First name*" />
+          <input v-model="lastName" type="text" placeholder="Last name*" />
         </div>
 
         <div class="row">
-          <input type="email" placeholder="Email*" />
-          <input type="text" placeholder="Emne*" />
+          <input v-model="email" type="email" placeholder="Email*" />
+          <input v-model="subject" type="text" placeholder="Subject*" />
         </div>
 
-        <textarea placeholder="Besked"></textarea>
+        <textarea v-model="message" placeholder="Message*"></textarea>
 
-        <button type="submit" class="send-btn">SEND</button>
+        <button type="submit" class="send-btn" :disabled="loading">
+          {{ loading ? "SENDING..." : "SEND" }}
+        </button>
+
+        <!-- Errors -->
+        <p v-if="localError" class="contact-error">{{ localError }}</p>
+        <p v-else-if="error" class="contact-error">{{ error }}</p>
+
+        <!-- Success message -->
+        <p v-if="success" class="contact-success">{{ success }}</p>
       </form>
     </div>
 
     <!-- RIGHT SIDE (Order Panel) -->
     <div class="contact-right">
       <h2 class="order-title">ORDER OUR PASTRY<br />ONLINE</h2>
-      <p class="order-subtitle">THEN PICK UP DIRECTLY IN OUR STORE</p>
+      <p class="order-subtitle">PICK UP DIRECTLY IN OUR STORE</p>
 
-      <NuxtLink to="/products" class="order-btn"
-        >ORDER - VEJERS STRAND</NuxtLink
-      >
+      <NuxtLink to="/products" class="order-btn">
+        ORDER - VEJERS STRAND
+      </NuxtLink>
     </div>
   </section>
 </template>
@@ -125,12 +191,33 @@ textarea {
   transform: scale(1.05);
 }
 
+.send-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Messages */
+.contact-error {
+  margin-top: 1rem;
+  color: #b91c1c;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.contact-success {
+  margin-top: 1rem;
+  color: #166534;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
 /* ————————————————
    RIGHT SIDE
 ——————————————— */
 .contact-right {
   width: 60%;
-  background: #707f78; /* green-grey Batard color */
+  background: #707f78;
   color: white;
   text-align: center;
   display: flex;
@@ -154,19 +241,16 @@ textarea {
   opacity: 0.9;
 }
 
-/* button */
+/* Button */
 .order-btn {
   margin-top: 3rem;
-  width: fit-content;
   background: white;
   color: #000;
-  border: none;
   padding: 1rem 2.5rem;
   font-size: 1.2rem;
   font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s ease;
   text-decoration: none;
+  transition: 0.3s ease;
 }
 
 .order-btn:hover {

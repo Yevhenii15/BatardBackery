@@ -60,10 +60,10 @@ const onLogout = async () => {
           <span class="card-link">Go to company →</span>
         </div>
 
-        <div class="card" @click="goTo('/admin/')">
-          <h2 class="card-title">Add later....</h2>
-          <p class="card-desc">Manage admin accounts and permissions.</p>
-          <span class="card-link">Go to users →</span>
+        <div class="card" @click="goTo('/admin/contact')">
+          <h2 class="card-title">Contact Messages</h2>
+          <p class="card-desc">Manage all messages from form.</p>
+          <span class="card-link">Go to contact messages →</span>
         </div>
       </section>
     </div>

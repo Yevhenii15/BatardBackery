@@ -2,10 +2,12 @@
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
-export type ContactStatus = "open" | "in_progress" | "closed";
+export type ContactStatus = "open" | "closed";
 
 export interface ContactMessageInput {
-  name: string;
+  firstName: string;
+  lastName: string;
+  subject: string;
   email: string;
   phone?: string;
   message: string;
@@ -13,13 +15,17 @@ export interface ContactMessageInput {
 
 export interface ContactMessage {
   _id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  subject: string;
   email: string;
   phone?: string;
   message: string;
-  status: ContactStatus;
-  archived: boolean;
-  archivedAt?: string | null;
+
+  status: ContactStatus; // "open" | "closed"
+  adminNote: string; // matches model
+  closedAt?: string | null; // when status becomes "closed"
+
   createdAt: string;
   updatedAt: string;
 }
@@ -33,9 +39,7 @@ const error = ref<string | null>(null);
 export function useContactMessages() {
   const api = useApiClient();
 
-  /**
-   * Public: POST contact message
-   */
+  // PUBLIC: send message
   const sendMessage = async (data: ContactMessageInput) => {
     loading.value = true;
     error.value = null;
@@ -45,7 +49,6 @@ export function useContactMessages() {
         method: "POST",
         body: data,
       });
-
       return created;
     } catch (err: any) {
       error.value =
@@ -58,15 +61,11 @@ export function useContactMessages() {
     }
   };
 
-  /**
-   * Admin: GET messages (paginated & filtered)
-   * You can pass status and/or archived = true/false
-   */
+  // ADMIN: list messages (optional status filter)
   const getMessages = async (
     page = 1,
     pageSize = 20,
-    status?: ContactStatus,
-    archived?: boolean
+    status?: ContactStatus
   ) => {
     loading.value = true;
     error.value = null;
@@ -78,9 +77,6 @@ export function useContactMessages() {
       });
 
       if (status) query.append("status", status);
-      if (typeof archived === "boolean") {
-        query.append("archived", archived ? "true" : "false");
-      }
 
       const res = await api<{ items: ContactMessage[]; total: number }>(
         `/api/contact?${query.toString()}`
@@ -95,9 +91,7 @@ export function useContactMessages() {
     }
   };
 
-  /**
-   * Admin: GET one message by ID (if you have /api/contact/:id)
-   */
+  // ADMIN: get one message
   const getMessageById = async (id: string) => {
     loading.value = true;
     error.value = null;
@@ -111,13 +105,10 @@ export function useContactMessages() {
     }
   };
 
-  /**
-   * Admin: Update message status and/or archived flag
-   * e.g. { status: "closed", archived: true }
-   */
+  // ADMIN: update status and/or adminNote
   const updateMessage = async (
     id: string,
-    payload: { status?: ContactStatus; archived?: boolean }
+    payload: { status?: ContactStatus; adminNote?: string }
   ) => {
     loading.value = true;
     error.value = null;
@@ -128,11 +119,11 @@ export function useContactMessages() {
         body: payload,
       });
 
-      // Update list
+      // update list
       const idx = messages.value.findIndex((m) => m._id === id);
       if (idx !== -1) messages.value[idx] = updated;
 
-      // Update single
+      // update single
       if (message.value?._id === id) {
         message.value = updated;
       }
@@ -153,11 +144,7 @@ export function useContactMessages() {
     total,
     loading,
     error,
-
-    // Public
     sendMessage,
-
-    // Admin
     getMessages,
     getMessageById,
     updateMessage,
