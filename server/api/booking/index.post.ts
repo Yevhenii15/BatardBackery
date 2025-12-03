@@ -49,6 +49,28 @@ export default defineEventHandler(async (event) => {
 
   const productMap = new Map(products.map((p) => [String(p._id), p]));
 
+  // 🔹 2b) Build a qty map per product to check stock
+  const qtyByProduct = new Map<string, number>();
+  for (const item of input.items) {
+    const current = qtyByProduct.get(item.productId) ?? 0;
+    qtyByProduct.set(item.productId, current + item.quantity);
+  }
+
+  // 🔹 2c) Validate stock for every product
+  for (const [productId, neededQty] of qtyByProduct.entries()) {
+    const product = productMap.get(productId);
+    if (!product) continue;
+
+    const stock = typeof product.stock === "number" ? product.stock : 0;
+
+    if (stock < neededQty) {
+      setResponseStatus(event, 400);
+      return {
+        message: `Not enough stock for "${product.name}". Only ${stock} left.`,
+      };
+    }
+  }
+
   // 3) Build items with product snapshot + pickupIndex
   const items = input.items.map((i) => {
     const p = productMap.get(i.productId)!;
@@ -91,6 +113,13 @@ export default defineEventHandler(async (event) => {
     archived: false,
     archivedAt: null,
   });
+
+  // 🔹 6) Decrease stock for each product used in booking
+  for (const [productId, qty] of qtyByProduct.entries()) {
+    if (!qty) continue;
+
+    await Product.updateOne({ _id: productId }, { $inc: { stock: -qty } });
+  }
 
   setResponseStatus(event, 201);
   return booking.toObject();
