@@ -13,10 +13,7 @@
       <!-- Error -->
       <div v-if="error" class="alert-error">{{ error }}</div>
 
-      <!-- Search card -->
-      <div class="admin-card">
-        <BookingSearch @search="searchBooking" @reset="reloadBookings" />
-      </div>
+      <BookingSearch @search="searchBooking" @reset="reloadBookings" />
 
       <!-- Active bookings -->
       <div class="admin-card">
@@ -41,6 +38,10 @@
           @delete="removeBooking"
         />
       </div>
+      <!-- Revenue summary -->
+      <div class="admin-card">
+        <BookingRevenue :bookings="bookings" />
+      </div>
     </div>
   </div>
 </template>
@@ -51,6 +52,7 @@ import { useBooking } from "~/composables/useBooking";
 
 import BookingTable from "~/components/admin/booking/BookingTable.vue";
 import BookingSearch from "~/components/admin/booking/BookingSearch.vue";
+import BookingRevenue from "~/components/admin/booking/BookingRevenue.vue";
 
 // composable
 const {
@@ -161,6 +163,14 @@ const removeBooking = async (id: string) => {
 </script>
 
 <style scoped>
+.admin-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
 .back-btn-wrapper {
   text-align: left;
   margin-bottom: 20px;
