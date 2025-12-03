@@ -333,6 +333,7 @@ const toggleSection = (id: string) => {
   color: #444;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
 }
 

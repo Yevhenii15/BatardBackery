@@ -44,6 +44,19 @@
         </p>
         <p class="availability sold" v-else>Out of stock for today</p>
 
+        <!-- Pickup times for this product's category -->
+        <p v-if="productCategory" class="pickup-times">
+          <span class="pickup-line">
+            <strong>Pickup (Mon–Fri):</strong>
+            {{ weekdayTimesText || "No weekday pickup times configured" }}
+          </span>
+          <br />
+          <span class="pickup-line">
+            <strong>Pickup (Sat–Sun):</strong>
+            {{ weekendTimesText || "No weekend pickup times configured" }}
+          </span>
+        </p>
+
         <!-- ACTIONS: Add to cart with quantity selector -->
         <div class="actions">
           <!-- Completely blocked -->
@@ -133,6 +146,8 @@ import { onMounted, computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useProduct } from "~/composables/useProduct";
 import { useCart } from "~/composables/useCart";
+import { useCategory } from "~/composables/useCategory";
+import type { Category } from "~/composables/useCategory";
 import FooterView from "~/components/FooterView.vue";
 import Navbar from "~/components/NavbarView.vue";
 
@@ -140,14 +155,19 @@ const route = useRoute();
 const router = useRouter();
 
 const { product, loading, error, getProductById } = useProduct();
-const { addItem, items } = useCart(); // 👈 assuming items is exposed from cart
+const { addItem, items } = useCart();
 
-// ===== Load product =====
+// 🔹 categories (for pickup times)
+const { categories, getCategories } = useCategory();
+
+// ===== Load product + categories =====
 onMounted(async () => {
   const id = route.params.id as string;
-  if (id) {
-    await getProductById(id);
-  }
+
+  await Promise.all([
+    getCategories(),
+    id ? getProductById(id) : Promise.resolve(),
+  ]);
 });
 
 // ===== Quantity + limits =====
@@ -177,7 +197,6 @@ const alreadyInCart = computed(() => {
 
   if (!items?.value) return 0;
 
-  // adjust this depending on cart item structure
   return items.value.reduce((sum: number, item: any) => {
     const itemProductId =
       item.product?._id || item.productId || item._id || item.id;
@@ -190,6 +209,29 @@ const alreadyInCart = computed(() => {
 const remaining = computed(() => {
   const rem = maxPerOrder.value - alreadyInCart.value;
   return rem > 0 ? rem : 0;
+});
+
+// 🔹 Category of this product
+const productCategory = computed<Category | null>(() => {
+  if (!product.value) return null;
+  return (
+    categories.value.find((c) => c._id === product.value!.categoryId) || null
+  );
+});
+
+// 🔹 Texts for pickup times
+const weekdayTimesText = computed(() => {
+  if (!productCategory.value) return "";
+  const { weekdayTime } = productCategory.value;
+  if (!weekdayTime?.from || !weekdayTime?.to) return "";
+  return `${weekdayTime.from} – ${weekdayTime.to}`;
+});
+
+const weekendTimesText = computed(() => {
+  if (!productCategory.value) return "";
+  const { weekendsTime } = productCategory.value;
+  if (!weekendsTime?.from || !weekendsTime?.to) return "";
+  return `${weekendsTime.from} – ${weekendsTime.to}`;
 });
 
 // Open selector
@@ -413,5 +455,15 @@ const confirmAddToCart = () => {
   color: #6f7d75;
   text-decoration: underline;
   font-size: 0.95rem;
+}
+.pickup-times {
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.pickup-line strong {
+  font-weight: 600;
+  color: #111827;
 }
 </style>

@@ -40,6 +40,23 @@
           {{ section.category.categoryName }}
         </h2>
 
+        <!-- 👇 NEW: pickup times text -->
+        <p class="category-times">
+          Pick up times — (Weekdays:
+          <strong>
+            {{ section.category.weekdayTime.from }}
+            –
+            {{ section.category.weekdayTime.to }}
+          </strong>
+          <span class="dot-separator">•</span>
+          Weekends:
+          <strong>
+            {{ section.category.weekendsTime.from }}
+            –
+            {{ section.category.weekendsTime.to }})
+          </strong>
+        </p>
+
         <div v-if="section.items.length" class="product-grid">
           <div
             v-for="item in section.items"
@@ -317,11 +334,28 @@ onMounted(async () => {
 /* Category Title */
 .category-title {
   font-size: 3rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.4rem;
   margin-left: 1rem;
   color: #1d2a3a;
   font-weight: 700;
   letter-spacing: 2px;
+}
+
+/* 👇 NEW: times text */
+.category-times {
+  margin-left: 1.1rem;
+  margin-bottom: 1.8rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.category-times strong {
+  font-weight: 600;
+}
+
+.dot-separator {
+  margin: 0 0.45rem;
+  color: #9ca3af;
 }
 
 .product-grid {
