@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     stripeSecretKey: process.env.STRIPE_SECRET_KEY,
     public: {
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || "http://localhost:3000",
     },
   },
 });
