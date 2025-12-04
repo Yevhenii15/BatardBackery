@@ -1,22 +1,38 @@
-import nodemailer from "nodemailer";
-import type { H3Event } from "h3";
+// server/utils/sendBookingEmail.ts
 import Booking from "../models/Booking";
+import { useRuntimeConfig } from "#imports";
+import {
+  TransactionalEmailsApi,
+  TransactionalEmailsApiApiKeys,
+} from "@getbrevo/brevo";
+
+const brevo = new TransactionalEmailsApi();
+
+// helper to initialise once
+function initBrevo() {
+  const config = useRuntimeConfig();
+  if (config.brevoApiKey) {
+    brevo.setApiKey(
+      TransactionalEmailsApiApiKeys.apiKey,
+      config.brevoApiKey as string
+    );
+  } else {
+    console.error("[Brevo] Missing BREVO_API_KEY");
+  }
+}
+
+let brevoInitialised = false;
 
 export async function sendBookingConfirmationEmail(bookingId: string) {
   const booking = await Booking.findById(bookingId).lean();
   if (!booking) return;
 
-  const config = useRuntimeConfig();
+  if (!brevoInitialised) {
+    initBrevo();
+    brevoInitialised = true;
+  }
 
-  const transporter = nodemailer.createTransport({
-    host: config.smtpHost,
-    port: Number(config.smtpPort || 587),
-    secure: false,
-    auth: {
-      user: config.smtpUser,
-      pass: config.smtpPass,
-    },
-  });
+  const config = useRuntimeConfig();
 
   const customerName = `${booking.customer.firstName} ${booking.customer.lastName}`;
   const subject = `Your Batard Bakery booking #${booking.bookingNumber}`;
@@ -54,9 +70,7 @@ export async function sendBookingConfirmationEmail(bookingId: string) {
   const html = `
     <div style="font-family: Arial, sans-serif; color:#111; font-size:14px;">
       <h2 style="color:#333;">Thank you for your booking, ${customerName}!</h2>
-      <p>
-        Your booking number is <strong>${booking.bookingNumber}</strong>.
-      </p>
+      <p>Your booking number is <strong>${booking.bookingNumber}</strong>.</p>
 
       <h3 style="margin-top:20px;">Customer</h3>
       <p>
@@ -105,11 +119,14 @@ export async function sendBookingConfirmationEmail(bookingId: string) {
     </div>
   `;
 
-  await transporter.sendMail({
-    from: config.smtpFrom,
-    to: booking.customer.email,
-    bcc: config.smtpBcc || undefined,
+  await brevo.sendTransacEmail({
+    to: [{ email: booking.customer.email, name: customerName }],
+    bcc: config.brevoBcc ? [{ email: config.brevoBcc as string }] : undefined,
+    sender: {
+      email: config.brevoFromEmail as string,
+      name: config.brevoFromName as string,
+    },
     subject,
-    html,
+    htmlContent: html,
   });
 }
