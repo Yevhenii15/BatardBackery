@@ -22,6 +22,7 @@ import Category from "../../models/Category";
 import Product from "../../models/Product";
 import { BookingCreateInput } from "../../validation/Booking";
 import { generateBookingNumber } from "../../utils/booking";
+import { sendBookingConfirmationEmail } from "../../utils/sendBookingEmail";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -49,19 +50,20 @@ export default defineEventHandler(async (event) => {
 
   const productMap = new Map(products.map((p) => [String(p._id), p]));
 
-  // 🔹 2b) Build a qty map per product to check stock
+  // 2b) Build a qty map per product to check stock
   const qtyByProduct = new Map<string, number>();
   for (const item of input.items) {
     const current = qtyByProduct.get(item.productId) ?? 0;
     qtyByProduct.set(item.productId, current + item.quantity);
   }
 
-  // 🔹 2c) Validate stock for every product
+  // 2c) Validate stock for every product
   for (const [productId, neededQty] of qtyByProduct.entries()) {
     const product = productMap.get(productId);
     if (!product) continue;
 
-    const stock = typeof product.stock === "number" ? product.stock : 0;
+    const stock =
+      typeof (product as any).stock === "number" ? (product as any).stock : 0;
 
     if (stock < neededQty) {
       setResponseStatus(event, 400);
@@ -114,12 +116,17 @@ export default defineEventHandler(async (event) => {
     archivedAt: null,
   });
 
-  // 🔹 6) Decrease stock for each product used in booking
+  // 6) Decrease stock for each product used in booking
   for (const [productId, qty] of qtyByProduct.entries()) {
     if (!qty) continue;
 
     await Product.updateOne({ _id: productId }, { $inc: { stock: -qty } });
   }
+
+  // 7) Send confirmation email (do not block the response if it fails)
+  sendBookingConfirmationEmail(booking._id.toString()).catch((err) => {
+    console.error("Failed to send booking confirmation email:", err);
+  });
 
   setResponseStatus(event, 201);
   return booking.toObject();

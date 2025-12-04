@@ -20,48 +20,57 @@
       <header class="checkout-header">
         <h1>Checkout</h1>
         <p v-if="!success">Fill in your details and choose pickup time.</p>
+
+        <p v-if="paymentStatus === 'success'" class="info-text">
+          Stripe test payment completed successfully.
+        </p>
+        <p v-if="paymentStatus === 'cancelled'" class="info-text warning">
+          You cancelled the Stripe payment. Your booking was not created.
+        </p>
       </header>
 
-      <!-- Error from form / API -->
-      <p v-if="formError" class="error-text">{{ formError }}</p>
-      <p v-if="bookingError" class="error-text">{{ bookingError }}</p>
+      <!-- Everything that depends on localStorage/cart goes here -->
+      <ClientOnly>
+        <!-- Empty cart (only if no booking success) -->
+        <div v-if="items.length === 0 && !success" class="empty-state">
+          <p>Your cart is empty.</p>
+          <NuxtLink to="/products" class="primary-btn">
+            Go to products
+          </NuxtLink>
+        </div>
 
-      <!-- Empty cart -->
-      <div v-if="items.length === 0 && !success" class="empty-state">
-        <p>Your cart is empty.</p>
-        <NuxtLink to="/products" class="primary-btn"> Go to products </NuxtLink>
-      </div>
+        <!-- SUCCESS (FULL SCREEN) -->
+        <CheckoutSuccessSummary v-if="success && booking" :booking="booking" />
 
-      <!-- SUCCESS (FULL SCREEN) -->
-      <CheckoutSuccessSummary v-if="success && booking" :booking="booking" />
+        <!-- MAIN CHECKOUT FORM -->
+        <div v-if="items.length > 0 && !success" class="checkout-grid">
+          <section class="left-column">
+            <CustomerForm v-model:customer="customer" />
+            <PickupGroupsForm
+              v-model:groups="pickupGroups"
+              v-model:date="pickupDate"
+              :today="today"
+              :timeSlots="timeSlots"
+            />
+          </section>
 
-      <!-- MAIN CHECKOUT FORM -->
-      <div v-if="items.length > 0 && !success" class="checkout-grid">
-        <section class="left-column">
-          <CustomerForm v-model:customer="customer" />
-          <PickupGroupsForm
-            v-model:groups="pickupGroups"
-            v-model:date="pickupDate"
-            :today="today"
-            :timeSlots="timeSlots"
-          />
-        </section>
-
-        <section class="right-column">
-          <OrderSummary
-            :items="items"
-            :totalPrice="totalPrice"
-            :submitting="submitting"
-            @submit="handleSubmit"
-          />
-        </section>
-      </div>
+          <section class="right-column">
+            <OrderSummary
+              :items="items"
+              :totalPrice="totalPrice"
+              :submitting="submitting"
+              @submit="handleSubmit"
+            />
+          </section>
+        </div>
+      </ClientOnly>
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import Navbar from "~/components/NavbarView.vue";
 
 import { useCart } from "~/composables/useCart";
@@ -71,6 +80,7 @@ import {
   type BookingCustomer,
   type BookingItemInput,
   type BookingPickupInput,
+  type BookingCreateInput,
 } from "~/composables/useBooking";
 import {
   useCheckoutPickup,
@@ -82,6 +92,10 @@ import PickupGroupsForm from "../components/checkout/PickupGroupsForm.vue";
 import OrderSummary from "../components/checkout/OrderSummary.vue";
 import CheckoutSuccessSummary from "~/components/checkout/CheckoutSuccessSummary.vue";
 
+const PENDING_BOOKING_KEY = "batard_pending_booking";
+
+const route = useRoute();
+
 const { items, totalPrice, clearCart, setQuantity, removeItem } = useCart();
 const { categories, getCategories, loading: categoriesLoading } = useCategory();
 const {
@@ -89,7 +103,7 @@ const {
   loading: bookingLoading,
   error: bookingError,
   booking,
-  checkCapacity, // 👈 capacity check
+  checkCapacity,
 } = useBooking();
 
 const { today, pickupDate, pickupGroups, timeSlots, rebuildPickupGroups } =
@@ -109,15 +123,72 @@ const submitting = computed(
   () => bookingLoading.value || categoriesLoading.value
 );
 
+// read ?payment=success / cancelled
+const paymentStatus = computed<string | null>(() => {
+  const q = route.query.payment;
+  return typeof q === "string" ? q : null;
+});
+
 onMounted(async () => {
   await getCategories();
   rebuildPickupGroups();
+
+  // If we just came back from Stripe with success -> finalize booking
+  if (paymentStatus.value === "success") {
+    await finalizeBookingFromStripe();
+  }
 });
+
 const goBack = () => {
   if (import.meta.client) {
     window.location.href = "/products";
   }
 };
+
+/**
+ * Build booking payload from current state.
+ */
+const buildBookingPayload = (): BookingCreateInput | null => {
+  if (!pickupDate.value) return null;
+
+  const pickups: BookingPickupInput[] = pickupGroups.value.map((group) => ({
+    categoryId: group.categoryIds[0] ?? "",
+    date: pickupDate.value!, // shared date
+    timeSlot: group.timeSlot,
+    orderNotes: group.orderNotes || "",
+  }));
+
+  const itemsPayload: BookingItemInput[] = [];
+  pickupGroups.value.forEach((group, index) => {
+    for (const item of group.items) {
+      itemsPayload.push({
+        productId: item.productId,
+        quantity: item.quantity,
+        pickupIndex: index,
+      });
+    }
+  });
+
+  return {
+    customer: {
+      firstName: customer.firstName.trim(),
+      lastName: customer.lastName.trim(),
+      phone: customer.phone.trim(),
+      email: customer.email.trim(),
+    },
+    pickups,
+    items: itemsPayload,
+  };
+};
+
+/**
+ * Main flow triggered from OrderSummary submit:
+ * 1) validate form
+ * 2) check capacity
+ * 3) build booking payload
+ * 4) store it in sessionStorage
+ * 5) redirect to Stripe test checkout
+ */
 const handleSubmit = async () => {
   formError.value = null;
 
@@ -149,7 +220,7 @@ const handleSubmit = async () => {
   }
 
   // ============================
-  // 🔥 CHECK CAPACITY FOR THE DAY
+  // CHECK CAPACITY FOR THE DAY
   // ============================
   const capacityResult = await checkCapacity(pickupDate.value, items.value);
   const byProduct = capacityResult?.byProduct || {};
@@ -182,14 +253,12 @@ const handleSubmit = async () => {
   }
 
   if (adjusted) {
-    // ❗ Do NOT rebuild pickup groups, so timeSlot & date stay as chosen.
     alert(
       `Sorry, we only have a limited amount left for the selected date.\n\n` +
         messages.join("\n") +
         `\n\nIf you need more, please contact us.`
     );
 
-    // 👇 STOP HERE – let the user review the updated cart & submit again
     if (!items.value.length) {
       formError.value =
         "Your cart is now empty because there was no remaining capacity for the selected date.";
@@ -198,46 +267,107 @@ const handleSubmit = async () => {
   }
 
   // ============================
-  // Build payload & create booking
+  // Build & store booking payload
   // ============================
-  const pickups: BookingPickupInput[] = pickupGroups.value.map((group) => ({
-    categoryId: group.categoryIds[0] ?? "",
-    date: pickupDate.value!, // shared date
-    timeSlot: group.timeSlot, // already selected
-    orderNotes: group.orderNotes || "",
-  }));
+  const bookingPayload = buildBookingPayload();
+  if (!bookingPayload) {
+    formError.value = "Could not build booking data. Please try again.";
+    return;
+  }
 
-  const itemsPayload: BookingItemInput[] = [];
-  pickupGroups.value.forEach((group, index) => {
-    for (const item of group.items) {
-      itemsPayload.push({
-        productId: item.productId,
-        quantity: item.quantity,
-        pickupIndex: index,
-      });
-    }
-  });
+  if (import.meta.client) {
+    sessionStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify(bookingPayload));
+  }
 
-  const created = await createBooking({
-    customer: {
-      firstName: customer.firstName.trim(),
-      lastName: customer.lastName.trim(),
-      phone: customer.phone.trim(),
-      email: customer.email.trim(),
-    },
-    pickups,
-    items: itemsPayload,
-  });
+  // ============================
+  // Redirect to Stripe test checkout
+  // ============================
+  await startStripeCheckout();
+};
+
+/**
+ * After Stripe redirects back with ?payment=success
+ * we read the pending booking payload from sessionStorage
+ * and actually create the booking in our backend.
+ */
+const finalizeBookingFromStripe = async () => {
+  if (!import.meta.client) return;
+  if (success.value) return;
+
+  const raw = sessionStorage.getItem(PENDING_BOOKING_KEY);
+  if (!raw) {
+    // no draft booking – nothing to do
+    return;
+  }
+
+  let payload: BookingCreateInput;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    formError.value =
+      "Payment succeeded but booking data was invalid. Please contact us.";
+    return;
+  }
+
+  const created = await createBooking(payload);
 
   if (!created) {
-    if (!formError.value) {
-      formError.value = "Could not create booking. Please try again.";
-    }
+    formError.value =
+      "Payment succeeded but booking could not be created. Please contact us.";
     return;
   }
 
   success.value = true;
+
+  // clear stored draft + cart
+  sessionStorage.removeItem(PENDING_BOOKING_KEY);
   clearCart();
+};
+
+/**
+ * Stripe test checkout:
+ * uses current cart items for line items.
+ * Backend should:
+ * - read items & total
+ * - create Stripe Checkout Session
+ * - redirect to success/cancel URLs
+ */
+const startStripeCheckout = async () => {
+  formError.value = null;
+
+  if (!items.value.length) {
+    formError.value = "Your cart is empty.";
+    return;
+  }
+
+  try {
+    const payload = {
+      items: items.value.map((item: any) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      // optional extras you can use in backend:
+      totalPrice: totalPrice.value,
+    };
+
+    const res = await $fetch<{ url: string }>("/api/stripe/checkout", {
+      method: "POST",
+      body: payload,
+    });
+
+    if (!res.url) {
+      formError.value = "Could not start Stripe checkout.";
+      return;
+    }
+
+    // redirect to Stripe Checkout (test mode)
+    window.location.href = res.url;
+  } catch (err) {
+    console.error(err);
+    formError.value =
+      "Stripe checkout failed. Please try again or contact the bakery.";
+  }
 };
 </script>
 
@@ -279,6 +409,16 @@ const handleSubmit = async () => {
 .checkout-header h1 {
   font-size: 2rem;
   font-weight: 700;
+}
+
+.info-text {
+  margin-top: 0.5rem;
+  color: #2563eb;
+  font-size: 0.95rem;
+}
+
+.info-text.warning {
+  color: #92400e;
 }
 
 .checkout-grid {

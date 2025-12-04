@@ -5,7 +5,6 @@ const props = defineProps<{
   booking: Booking;
 }>();
 
-// 🔹 Force full reload when going back to products
 const goBackToProducts = () => {
   if (import.meta.client) {
     window.location.href = "/products";
@@ -15,43 +14,43 @@ const goBackToProducts = () => {
 
 <template>
   <div class="success-box">
+    <!-- HEADER -->
     <header class="success-header">
-      <div>
-        <h2>Booking created</h2>
+      <h2>Booking created</h2>
 
-        <p class="success-intro">
-          Thank you,
-          <strong>{{ booking.customer.firstName }}</strong
-          >. Your booking number is <strong>{{ booking.bookingNumber }}</strong
-          >.
-        </p>
+      <p class="success-intro">
+        Thank you,
+        <strong>{{ booking.customer.firstName }}</strong
+        >. Your booking number is <strong>{{ booking.bookingNumber }}</strong
+        >.
+      </p>
 
-        <p class="success-note">
-          Below is a full summary of your booking, including customer details,
-          pickup time(s), and all items.
-        </p>
-      </div>
+      <p class="success-note">
+        Below is a full summary of your booking, including customer details,
+        pickup time(s), and all items.
+      </p>
     </header>
 
+    <!-- TOP ROW: CUSTOMER + PICKUP -->
     <div class="success-grid">
       <!-- Customer -->
       <section class="success-card">
         <h3>Customer</h3>
         <div class="card-body">
-          <p class="line">
+          <div class="line">
             <span class="label">Name</span>
             <span class="value">
               {{ booking.customer.firstName }} {{ booking.customer.lastName }}
             </span>
-          </p>
-          <p class="line">
+          </div>
+          <div class="line">
             <span class="label">Phone</span>
             <span class="value">{{ booking.customer.phone }}</span>
-          </p>
-          <p class="line">
+          </div>
+          <div class="line">
             <span class="label">Email</span>
             <span class="value">{{ booking.customer.email }}</span>
-          </p>
+          </div>
         </div>
       </section>
 
@@ -69,12 +68,9 @@ const goBackToProducts = () => {
               <div class="pickup-badge">Pickup {{ idx + 1 }}</div>
 
               <div class="pickup-details">
-                <div class="pickup-main">
-                  <span class="pickup-category">{{ p.categoryName }}</span>
-                  <span class="pickup-time">
-                    {{ p.date }} · {{ p.timeSlot }}
-                  </span>
-                </div>
+                <span class="pickup-line">
+                  {{ p.categoryName }} · {{ p.date }} · {{ p.timeSlot }}
+                </span>
 
                 <p v-if="p.orderNotes" class="pickup-notes">
                   Notes: {{ p.orderNotes }}
@@ -84,61 +80,61 @@ const goBackToProducts = () => {
           </ul>
         </div>
       </section>
-
-      <!-- Items -->
-      <section class="success-card success-items">
-        <h3>Items</h3>
-
-        <div class="card-body card-body--no-padding-top">
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th class="col-product">Product</th>
-                <th class="col-pickup">Pickup</th>
-                <th class="col-qty">Qty</th>
-                <th class="col-price">Price</th>
-                <th class="col-subtotal">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in booking.items" :key="item.productId">
-                <td class="col-product">
-                  <div class="item-cell">
-                    <img
-                      v-if="item.photo"
-                      :src="item.photo"
-                      :alt="item.name"
-                      class="item-thumb"
-                    />
-                    <div class="item-text">
-                      <div class="item-name">{{ item.name }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="col-pickup">
-                  <span class="pill">Pickup {{ item.pickupIndex + 1 }}</span>
-                </td>
-                <td class="col-qty">
-                  {{ item.quantity }}
-                </td>
-                <td class="col-price">{{ item.price.toFixed(2) }} DKK</td>
-                <td class="col-subtotal">
-                  {{ item.subtotalPrice.toFixed(2) }} DKK
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="success-total">
-            <span>Total</span>
-            <strong>{{ booking.totalPrice.toFixed(2) }} DKK</strong>
-          </div>
-        </div>
-      </section>
     </div>
 
-    <!-- 🔹 Now a button that reloads the page -->
-    <button class="primary-btn mt-4" @click="goBackToProducts">
+    <!-- ITEMS FULL WIDTH -->
+    <section class="success-card success-items">
+      <h3>Items</h3>
+
+      <div class="card-body card-body--no-padding-top">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="col-product">Product</th>
+              <th class="col-pickup">Pickup</th>
+              <th class="col-qty">Qty</th>
+              <th class="col-price">Price</th>
+              <th class="col-subtotal">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in booking.items" :key="item.productId">
+              <td class="col-product">
+                <div class="item-cell">
+                  <img
+                    v-if="item.photo"
+                    :src="item.photo"
+                    :alt="item.name"
+                    class="item-thumb"
+                  />
+                  <div class="item-text">
+                    <div class="item-name">{{ item.name }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="col-pickup">
+                <span class="pill">Pickup {{ item.pickupIndex + 1 }}</span>
+              </td>
+              <td class="col-qty">
+                {{ item.quantity }}
+              </td>
+              <td class="col-price">{{ item.price.toFixed(2) }} DKK</td>
+              <td class="col-subtotal">
+                {{ item.subtotalPrice.toFixed(2) }} DKK
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="success-total">
+          <span>Total</span>
+          <strong>{{ booking.totalPrice.toFixed(2) }} DKK</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Back button -->
+    <button class="primary-btn" @click="goBackToProducts">
       Back to products
     </button>
   </div>
@@ -146,24 +142,25 @@ const goBackToProducts = () => {
 
 <style scoped>
 .success-box {
-  max-width: 1100px;
+  max-width: 1050px;
   margin: 2.5rem auto 0;
   background: #ffffff;
   border-radius: 16px;
-  padding: 1.8rem 2rem 2.2rem;
+  padding: 1.8rem 2rem 2.4rem;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.06);
   border: 1px solid #e7e7e7;
 }
 
-/* Header */
+/* HEADER */
 .success-header {
+  text-align: center;
   border-bottom: 1px solid #eee;
   padding-bottom: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
-.success-box h2 {
-  font-size: 1.7rem;
+.success-header h2 {
+  font-size: 1.8rem;
   font-weight: 700;
   margin: 0 0 0.4rem;
   color: #2f2f2f;
@@ -178,20 +175,20 @@ const goBackToProducts = () => {
 .success-note {
   font-size: 0.9rem;
   color: #777;
-  margin-top: 0.35rem;
+  margin-top: 0.4rem;
 }
 
-/* Layout for the three summary blocks */
+/* TOP ROW: 2 CARDS */
 .success-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.05fr) minmax(0, 1.5fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.2rem;
-  margin-top: 0.8rem;
+  margin-bottom: 1.3rem;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 900px) {
   .success-box {
-    padding: 1.5rem 1.25rem 1.8rem;
+    padding: 1.5rem 1.25rem 2rem;
   }
 
   .success-grid {
@@ -199,7 +196,7 @@ const goBackToProducts = () => {
   }
 }
 
-/* Cards */
+/* CARDS */
 .success-card {
   border-radius: 12px;
   border: 1px solid #ececec;
@@ -218,17 +215,17 @@ const goBackToProducts = () => {
 }
 
 .card-body {
-  padding: 0.75rem 0.95rem 0.9rem;
+  padding: 0.75rem 0.9rem 0.9rem;
 }
 
 .card-body--no-padding-top {
   padding-top: 0.4rem;
 }
 
-/* Customer lines */
-.success-card .line {
-  display: grid;
-  grid-template-columns: 0.9fr 1.3fr;
+/* CUSTOMER LINES */
+.line {
+  display: flex;
+  justify-content: space-between;
   gap: 0.5rem;
   font-size: 0.9rem;
   padding: 0.25rem 0;
@@ -236,7 +233,6 @@ const goBackToProducts = () => {
 
 .label {
   color: #777;
-  text-align: start;
 }
 
 .value {
@@ -244,22 +240,21 @@ const goBackToProducts = () => {
   color: #222;
   text-align: right;
   word-break: break-word;
-  text-align: start;
 }
 
-/* Pickup list */
+/* PICKUP LIST */
 .pickup-list {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
 .pickup-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.6rem 0.75rem;
-  align-items: flex-start;
-  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
   border-bottom: 1px solid #eee;
 }
 
@@ -267,9 +262,10 @@ const goBackToProducts = () => {
   border-bottom: none;
 }
 
+/* badge: small circle label */
 .pickup-badge {
   font-size: 0.75rem;
-  padding: 0.18rem 0.6rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 999px;
   border: 1px solid #d7d7d7;
   background: #ffffff;
@@ -277,38 +273,28 @@ const goBackToProducts = () => {
   white-space: nowrap;
 }
 
-.pickup-details {
+/* full horizontal line */
+.pickup-line {
   font-size: 0.9rem;
-}
-
-.pickup-main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.pickup-category {
-  font-weight: 600;
+  font-weight: 500;
   color: #333;
+  display: block;
 }
 
-.pickup-time {
-  color: #666;
-  font-size: 0.85rem;
-}
-
+/* Notes */
 .pickup-notes {
-  margin-top: 0.25rem;
+  margin-top: 2px;
   font-size: 0.8rem;
   color: #666;
   font-style: italic;
 }
 
-/* Items table */
+/* ITEMS FULL WIDTH */
 .success-items {
   background: #ffffff;
 }
 
+/* ITEMS TABLE */
 .items-table {
   width: 100%;
   border-collapse: collapse;
@@ -374,7 +360,7 @@ const goBackToProducts = () => {
   color: #333;
 }
 
-/* Small pill for pickup index in table */
+/* PILL */
 .pill {
   display: inline-flex;
   padding: 0.15rem 0.55rem;
@@ -385,7 +371,7 @@ const goBackToProducts = () => {
   background: #fafafa;
 }
 
-/* Total at the bottom of success items */
+/* TOTAL */
 .success-total {
   display: flex;
   justify-content: space-between;
@@ -400,7 +386,7 @@ const goBackToProducts = () => {
   color: #666;
 }
 
-/* Button */
+/* BUTTON */
 .primary-btn {
   margin-top: 1.6rem;
   background: #6f7d75;
