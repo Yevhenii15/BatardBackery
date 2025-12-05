@@ -22,6 +22,7 @@ const goBackToProducts = () => {
         Thank you,
         <strong>{{ booking.customer.firstName }}</strong
         >. Your booking number is <strong>{{ booking.bookingNumber }}</strong
+        >. Status is <strong>{{ booking.status }}</strong
         >.
       </p>
 
