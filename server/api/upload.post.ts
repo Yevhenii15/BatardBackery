@@ -7,34 +7,13 @@ export const config = {
   bodyParser: false,
 };
 
-// 👇 This will work both locally and in Render's .output structure
-function getPublicRoot() {
-  const cwd = process.cwd();
-
-  // In production (Nuxt build) cwd is usually .output/server
-  const isOutput = cwd.includes(".output");
-
-  if (isOutput) {
-    // .output/server  -> public files live in .output/public
-    return path.join(cwd, "..", "public");
-  }
-
-  // Local dev: cwd = project root
-  return path.join(cwd, "public");
-}
-
 export default defineEventHandler(async (event) => {
-  const publicRoot = getPublicRoot();
-  const uploadDir = path.join(publicRoot, "uploads");
-
-  // Debug logs – will appear in Render logs
-  console.log("[upload] process.cwd() =", process.cwd());
-  console.log("[upload] publicRoot   =", publicRoot);
-  console.log("[upload] uploadDir    =", uploadDir);
+  // ✅ Always use <project root>/public/uploads
+  const uploadDir = path.join(process.cwd(), "public", "uploads");
 
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
-    console.log("[upload] created uploadDir");
+    console.log("[upload] created uploadDir:", uploadDir);
   }
 
   const form = formidable({
@@ -52,44 +31,43 @@ export default defineEventHandler(async (event) => {
           return reject(err);
         }
 
-        // 🔁 Delete old file if oldUrl is provided
+        // 🔁 Delete old file(s) if oldUrl provided
         if (fields.oldUrl) {
           const oldUrls = Array.isArray(fields.oldUrl)
             ? fields.oldUrl
             : [fields.oldUrl];
 
-          for (const urlStr of oldUrls) {
-            const clean = String(urlStr).replace(/^\/+/g, ""); // remove leading slash
-            const oldPath = path.join(publicRoot, clean); // /public + uploads/xxx.png
+          oldUrls.forEach((urlStr) => {
+            const clean = String(urlStr).replace(/^\/+/g, ""); // remove leading "/"
+            const oldFilePath = path.join(
+              process.cwd(),
+              "public",
+              clean // e.g. "uploads/xxx.png"
+            );
 
-            console.log("[upload] trying to delete old file:", oldPath);
-
-            if (fs.existsSync(oldPath)) {
-              fs.unlinkSync(oldPath);
-              console.log("[upload] deleted old file:", oldPath);
+            if (fs.existsSync(oldFilePath)) {
+              fs.unlinkSync(oldFilePath);
+              console.log("[upload] deleted old file:", oldFilePath);
             }
-          }
+          });
         }
 
-        // ✅ Get uploaded file
+        // ✅ Get uploaded file (same pattern as old working code)
         const allFiles = files as any;
-        let file: File | undefined;
+        let file: File;
 
         if (Array.isArray(allFiles.file)) {
           file = allFiles.file[0] as File;
         } else if (allFiles.file) {
           file = allFiles.file as File;
-        }
-
-        if (!file) {
+        } else {
           return reject(new Error("No file uploaded"));
         }
 
         console.log("[upload] saved file at:", file.filepath);
 
-        // We always serve uploads as /uploads/<filename>
         const fileUrl = `/uploads/${path.basename(file.filepath)}`;
-        console.log("[upload] returned url:", fileUrl);
+        console.log("[upload] returning URL:", fileUrl);
 
         resolve({ url: fileUrl });
       });
@@ -97,7 +75,7 @@ export default defineEventHandler(async (event) => {
 
     return data;
   } catch (err) {
-    console.error("Upload error:", err);
+    console.error("[upload] Upload error:", err);
     setResponseStatus(event, 500);
     return { message: "Upload failed" };
   }
