@@ -3,15 +3,31 @@ import fs from "fs";
 import path from "path";
 
 export const config = {
-  // Important: let formidable handle the body, not Nitro
   bodyParser: false,
 };
 
-export default defineEventHandler(async (event) => {
-  const uploadDir = path.join(process.cwd(), "public/uploads");
+function getUploadDir() {
+  const cwd = process.cwd();
+
+  // In dev, cwd is project root → /public is correct
+  // In production (Render), cwd is usually .output/server → we need ../public
+  const isOutput = cwd.includes(".output");
+
+  const publicDir = isOutput
+    ? path.join(cwd, "..", "public") // => .output/public
+    : path.join(cwd, "public"); // => project/public
+
+  const uploadDir = path.join(publicDir, "uploads");
+
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
+
+  return uploadDir;
+}
+
+export default defineEventHandler(async (event) => {
+  const uploadDir = getUploadDir();
 
   const form = formidable({
     uploadDir,
@@ -31,7 +47,12 @@ export default defineEventHandler(async (event) => {
           const oldUrls = Array.isArray(oldField) ? oldField : [oldField];
           for (const old of oldUrls) {
             const clean = String(old).replace(/^\//, "");
-            const oldPath = path.join(process.cwd(), "public", clean);
+            // IMPORTANT: delete from the SAME public dir root
+            const oldPath = path.join(
+              uploadDir,
+              "..",
+              clean.replace(/^uploads\//, "")
+            );
             if (fs.existsSync(oldPath)) {
               fs.unlinkSync(oldPath);
             }
