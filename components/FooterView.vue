@@ -17,8 +17,8 @@ const menuItems: MenuItem[] = [
   { name: "Homepage", path: "/" },
   { name: "Order", path: "/products" },
   { name: "Se smiley (FVST)", external: "https://www.findsmiley.dk/1290487" },
-  { name: "Privacy Policy", path: "/" },
-  { name: "Return Policy", path: "/" },
+  { name: "Privacy Policy", path: "/privacy-policy" },
+  { name: "Return Policy", path: "/return-policy" },
 ];
 
 const isActive = (item: MenuItem) => {

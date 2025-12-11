@@ -93,12 +93,6 @@ const increase = (item: any) => {
                     {{ (item.price * item.quantity).toFixed(2) }} DKK
                   </p>
                 </div>
-
-                <!-- note when limit reached -->
-                <p v-if="isAtLimit(item)" class="capacity-note">
-                  No more of this product available for today. Please contact us
-                  if you need more.
-                </p>
               </div>
 
               <button class="remove-btn" @click="removeItem(item.productId)">
