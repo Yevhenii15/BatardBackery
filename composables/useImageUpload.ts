@@ -1,9 +1,7 @@
 // composables/useImageUpload.ts
 import { ref } from "vue";
-import { useApiClient } from "./useApiClient";
 
 export function useImageUpload() {
-  const api = useApiClient();
   const uploading = ref(false);
   const uploadError = ref<string | null>(null);
 
@@ -18,14 +16,21 @@ export function useImageUpload() {
     }
 
     try {
-      const res = await api<{ url: string }>("/api/upload", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
-      return res.url;
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || "Upload failed");
+      }
+
+      const data = (await res.json()) as { url: string };
+      return data.url;
     } catch (err: any) {
-      uploadError.value =
-        err?.statusMessage || err?.data?.message || "Failed to upload image.";
+      console.error("Upload failed", err);
+      uploadError.value = err?.message || "Failed to upload image.";
       throw err;
     } finally {
       uploading.value = false;

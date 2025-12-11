@@ -6,83 +6,52 @@ export const config = {
   bodyParser: false,
 };
 
-function getUploadDir() {
-  const cwd = process.cwd();
-
-  // In dev, cwd is project root → /public is correct
-  // In production (Render), cwd is usually .output/server → we need ../public
-  const isOutput = cwd.includes(".output");
-
-  const publicDir = isOutput
-    ? path.join(cwd, "..", "public") // => .output/public
-    : path.join(cwd, "public"); // => project/public
-
-  const uploadDir = path.join(publicDir, "uploads");
-
+export default defineEventHandler(async (event) => {
+  const uploadDir = path.join(process.cwd(), "public/uploads");
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  return uploadDir;
-}
-
-export default defineEventHandler(async (event) => {
-  const uploadDir = getUploadDir();
-
   const form = formidable({
+    multiples: false,
     uploadDir,
     keepExtensions: true,
-    multiples: false,
-    maxFileSize: 5 * 1024 * 1024, // 5MB
   });
 
-  try {
-    const result = await new Promise<{ url: string }>((resolve, reject) => {
-      form.parse(event.node.req, (err, fields, files) => {
-        if (err) return reject(err);
+  const data = await new Promise<{ url: string }>((resolve, reject) => {
+    form.parse(event.node.req, (err, fields, files) => {
+      if (err) return reject(err);
 
-        // ---- delete old file if oldUrl passed ----
-        const oldField = fields.oldUrl;
-        if (oldField) {
-          const oldUrls = Array.isArray(oldField) ? oldField : [oldField];
-          for (const old of oldUrls) {
-            const clean = String(old).replace(/^\//, "");
-            // IMPORTANT: delete from the SAME public dir root
-            const oldPath = path.join(
-              uploadDir,
-              "..",
-              clean.replace(/^uploads\//, "")
-            );
-            if (fs.existsSync(oldPath)) {
-              fs.unlinkSync(oldPath);
-            }
+      if (fields.oldUrl) {
+        const oldUrls = Array.isArray(fields.oldUrl)
+          ? fields.oldUrl
+          : [fields.oldUrl];
+
+        oldUrls.forEach((urlStr) => {
+          const clean = String(urlStr).replace(/^\/+/g, "");
+          const oldFilePath = path.join(process.cwd(), "public", clean);
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+            console.log("Deleted old file:", oldFilePath);
           }
-        }
+        });
+      }
 
-        // ---- get uploaded file safely ----
-        let file: File | undefined;
-        const filesAny = files as any;
-        const fileField = filesAny.file;
+      let file: File;
+      const anyFiles = files as any;
 
-        if (Array.isArray(fileField)) {
-          file = fileField[0] as File;
-        } else if (fileField) {
-          file = fileField as File;
-        }
+      if (Array.isArray(anyFiles.file)) {
+        file = anyFiles.file[0] as File;
+      } else if (anyFiles.file) {
+        file = anyFiles.file as File;
+      } else {
+        return reject(new Error("No file uploaded"));
+      }
 
-        if (!file) {
-          return reject(new Error("No file uploaded"));
-        }
-
-        const url = `/uploads/${path.basename(file.filepath)}`;
-        resolve({ url });
-      });
+      const fileUrl = `/uploads/${path.basename(file.filepath)}`;
+      resolve({ url: fileUrl });
     });
+  });
 
-    return result;
-  } catch (err) {
-    console.error("Upload error:", err);
-    setResponseStatus(event, 500);
-    return { message: "Upload failed" };
-  }
+  return data;
 });
