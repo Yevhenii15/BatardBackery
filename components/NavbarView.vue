@@ -3,7 +3,7 @@ import { useCartPanel } from "~/composables/useCartPanel";
 import { useCart } from "~/composables/useCart";
 
 const { open } = useCartPanel();
-const { items } = useCart(); // <-- gives reactive cart items
+const { items } = useCart(); //
 </script>
 
 <template>
