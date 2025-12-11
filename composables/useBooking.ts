@@ -223,6 +223,36 @@ export function useBooking() {
       >;
     };
   };
+  const lookupBooking = async (bookingNumber: string, lastName: string) => {
+    loading.value = true;
+    error.value = null;
+    booking.value = null;
+
+    try {
+      const encodedNumber = encodeURIComponent(bookingNumber);
+      const encodedLast = encodeURIComponent(lastName);
+
+      const data = await api<Booking>(
+        `/api/booking/lookup?bookingNumber=${encodedNumber}&lastName=${encodedLast}`,
+        { method: "GET" }
+      );
+
+      booking.value = data;
+      return data;
+    } catch (err: any) {
+      if (err?.status === 404 || err?.statusCode === 404) {
+        error.value =
+          "We couldn’t find a booking with that number and surname. Please check your details.";
+      } else {
+        error.value =
+          err?.data?.message || err?.statusMessage || "Failed to load booking.";
+      }
+      booking.value = null;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  };
   return {
     bookings,
     booking,
@@ -236,5 +266,6 @@ export function useBooking() {
     updateBooking,
     deleteBooking,
     checkCapacity,
+    lookupBooking,
   };
 }

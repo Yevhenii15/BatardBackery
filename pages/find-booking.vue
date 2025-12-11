@@ -68,19 +68,20 @@
 import { ref } from "vue";
 import Navbar from "~/components/NavbarView.vue";
 import CheckoutSuccessSummary from "~/components/checkout/CheckoutSuccessSummary.vue";
-import type { Booking } from "~/composables/useBooking";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
+import { useBooking } from "~/composables/useBooking";
 
-const route = useRoute();
 const router = useRouter();
 
+// form fields
 const bookingNumber = ref("");
 const lastName = ref("");
-const loading = ref(false);
-const error = ref<string | null>(null);
-const booking = ref<Booking | null>(null);
+
+// useBooking composable
+const { booking, loading, error, lookupBooking } = useBooking();
 
 const handleSearch = async () => {
+  // clear previous result / error
   error.value = null;
   booking.value = null;
 
@@ -92,28 +93,7 @@ const handleSearch = async () => {
     return;
   }
 
-  loading.value = true;
-  try {
-    const result = await $fetch<Booking>("/api/booking/lookup", {
-      method: "GET",
-      query: {
-        bookingNumber: num,
-        lastName: last,
-      },
-    });
-
-    booking.value = result;
-  } catch (err: any) {
-    if (err?.status === 404) {
-      error.value =
-        "We couldn’t find a booking with that number and surname. Please check your details.";
-    } else {
-      console.error(err);
-      error.value = "Something went wrong. Please try again later.";
-    }
-  } finally {
-    loading.value = false;
-  }
+  await lookupBooking(num, last);
 };
 </script>
 
