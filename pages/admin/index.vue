@@ -70,7 +70,7 @@ const onLogout = async () => {
   </div>
 </template>
 
-<style scoped>
+<style>
 body {
   margin: 0;
 }
