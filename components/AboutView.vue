@@ -98,21 +98,60 @@ const fullDescription = computed(() => company.value?.description || "");
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+/* Extra responsive improvements for smaller screens */
+@media (max-width: 650px) {
   .about {
-    padding: 4rem 1rem;
+    padding: 5rem 3rem; /* more breathing room */
+  }
+
+  .about-container {
+    padding: 0 0.5rem;
   }
 
   .about-title {
-    font-size: 2.2rem;
+    font-size: 1.9rem;
+    margin-bottom: 0.5rem;
   }
 
   .about-subtitle {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.4;
   }
 
   .about-text p {
+    font-size: 0.95rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .about-location {
+    margin-top: 1.5rem;
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about {
+    padding: 4rem 2rem; /* smaller screens need tighter layout */
+  }
+
+  .about-title {
+    font-size: 1.7rem;
+    letter-spacing: 1px;
+  }
+
+  .about-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .about-text p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .about-location {
+    font-size: 0.95rem;
   }
 }
 </style>

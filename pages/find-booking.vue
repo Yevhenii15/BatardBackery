@@ -62,6 +62,7 @@
       </div>
     </section>
   </main>
+  <FooterView />
 </template>
 
 <script setup lang="ts">
@@ -70,6 +71,7 @@ import Navbar from "~/components/NavbarView.vue";
 import CheckoutSuccessSummary from "~/components/checkout/CheckoutSuccessSummary.vue";
 import { useRouter } from "vue-router";
 import { useBooking } from "~/composables/useBooking";
+import FooterView from "~/components/FooterView.vue";
 
 const router = useRouter();
 
@@ -130,7 +132,7 @@ const handleSearch = async () => {
 .find-page {
   height: 100vh;
   position: relative;
-  top: 80px;
+  margin-top: 80px;
   min-height: calc(100vh - 80px);
   background: #f4f4f4;
 }

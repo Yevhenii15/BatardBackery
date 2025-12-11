@@ -302,9 +302,10 @@ const confirmAddToCart = () => {
   align-items: center;
   flex-wrap: wrap;
 }
-
-.info {
-  flex: 1 1 320px;
+@media (min-width: 1200px) {
+  .info {
+    flex: 1 1 320px;
+  }
 }
 
 .image-box {
@@ -465,5 +466,11 @@ const confirmAddToCart = () => {
 .pickup-line strong {
   font-weight: 600;
   color: #111827;
+}
+@media (max-width: 768px) {
+  .product-wrapper {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
 }
 </style>

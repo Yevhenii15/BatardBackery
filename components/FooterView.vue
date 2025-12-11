@@ -132,10 +132,13 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  width: 100%;
   padding: 0 3rem 4rem;
 }
-
+@media (min-width: 1200px) {
+  .footer-top {
+    width: 100%;
+  }
+}
 /* LEFT */
 .footer-left {
   text-align: center;

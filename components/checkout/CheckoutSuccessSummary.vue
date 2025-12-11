@@ -407,4 +407,107 @@ const goBackToProducts = () => {
 .primary-btn:hover {
   background: #4f5c55;
 }
+/* 📱 Mobile-friendly layout for booking items */
+@media (max-width: 768px) {
+  /* Make the whole box breathe a bit on small screens */
+  .success-box {
+    margin: 1.5rem 1rem 0;
+    padding: 1.2rem 1rem 1.8rem;
+  }
+
+  /* Turn table into stacked cards */
+  .items-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .items-table thead {
+    display: none; /* hide header row */
+  }
+  .col-product,
+  .col-pickup,
+  .col-qty,
+  .col-price,
+  .col-subtotal {
+    width: 100% !important;
+  }
+  .items-table,
+  .items-table tbody,
+  .items-table tr,
+  .items-table td {
+    display: block;
+  }
+
+  .items-table tr {
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.7rem;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    background: #fafafa;
+  }
+
+  .items-table td {
+    border-bottom: none;
+    padding: 0.25rem 0;
+    text-align: left;
+  }
+
+  /* Product row on top, a bit bigger */
+  .items-table td.col-product {
+    margin-bottom: 0.35rem;
+  }
+
+  .item-cell {
+    align-items: flex-start;
+  }
+
+  .item-thumb {
+    width: 42px;
+    height: 42px;
+  }
+
+  /* Label/value style for the other fields */
+  .items-table td.col-pickup,
+  .items-table td.col-qty,
+  .items-table td.col-price,
+  .items-table td.col-subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+
+  .items-table td.col-pickup::before,
+  .items-table td.col-qty::before,
+  .items-table td.col-price::before,
+  .items-table td.col-subtotal::before {
+    font-weight: 600;
+    color: #555;
+  }
+
+  .items-table td.col-pickup::before {
+    content: "Pickup";
+  }
+
+  .items-table td.col-qty::before {
+    content: "Quantity";
+  }
+
+  .items-table td.col-price::before {
+    content: "Price";
+  }
+
+  .items-table td.col-subtotal::before {
+    content: "Subtotal";
+  }
+
+  /* Total section tighter on mobile */
+  .success-total {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    font-size: 0.9rem;
+  }
+}
 </style>

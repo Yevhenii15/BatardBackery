@@ -529,4 +529,93 @@ onMounted(async () => {
   text-decoration: underline;
   cursor: pointer;
 }
+/* ✅ Make grid 2 columns on small screens instead of 1 */
+@media (max-width: 600px) {
+  .products {
+    padding: 2.5rem 1rem;
+  }
+
+  .category-title {
+    font-size: 2rem;
+    margin-left: 0.5rem;
+  }
+
+  .category-times {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 0.5rem;
+  }
+
+  .product-card {
+    padding: 1rem;
+  }
+
+  .product-image {
+    height: 180px;
+  }
+
+  .product-name {
+    font-size: 1.1rem;
+  }
+
+  .product-price {
+    font-size: 1rem;
+  }
+
+  .product-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+  }
+  .qty-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* keep - [input] + on one line */
+  .qty-btn,
+  .qty-input {
+    margin-bottom: 0;
+  }
+
+  .qty-input {
+    width: 46px;
+    padding: 3px 4px;
+    font-size: 0.9rem;
+  }
+
+  /* make confirm full-width under the counter */
+  .confirm-btn {
+    flex: 0 0 100%;
+    margin-top: 4px;
+    padding: 0.55rem 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  /* cancel link centered below */
+  .cancel-link {
+    flex: 0 0 100%;
+    text-align: center;
+    margin-top: 2px;
+    font-size: 0.8rem;
+  }
+}
+
+/* Optional: slightly smaller header on tablets */
+@media (max-width: 900px) {
+  .order-title {
+    font-size: 3.5rem;
+  }
+
+  .order-subtitle {
+    font-size: 1.1rem;
+  }
+}
 </style>

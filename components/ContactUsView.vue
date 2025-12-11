@@ -119,7 +119,6 @@ const onSubmit = async () => {
    LEFT SIDE
 ——————————————— */
 .contact-left {
-  width: 40%;
   background: #ebeaea;
   padding: 5rem 4rem;
   color: #231f20;
@@ -216,7 +215,6 @@ textarea {
    RIGHT SIDE
 ——————————————— */
 .contact-right {
-  width: 60%;
   background: #707f78;
   color: white;
   text-align: center;
@@ -260,14 +258,17 @@ textarea {
 /* ————————————————
    MOBILE
 ——————————————— */
+@media (min-width: 901px) {
+  .contact-left {
+    width: 40%;
+  }
+  .contact-right {
+    width: 60%;
+  }
+}
 @media (max-width: 900px) {
   .contact-section {
     flex-direction: column;
-  }
-
-  .contact-left,
-  .contact-right {
-    width: 100%;
   }
 
   .contact-left {

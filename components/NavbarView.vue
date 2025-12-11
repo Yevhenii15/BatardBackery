@@ -6,8 +6,6 @@ import { useContactInfo } from "~/composables/useContactInfo";
 
 const { open } = useCartPanel();
 const { items } = useCart();
-
-// ⭐ Load contact info (including logo)
 const { contactInfo, getContactInfo } = useContactInfo();
 
 onMounted(() => {
@@ -20,7 +18,6 @@ onMounted(() => {
     <div class="navbar-container">
       <!-- Logo (clickable -> home) -->
       <NuxtLink to="/" class="navbar-logo" aria-label="Go to homepage">
-        <!-- ⭐ Show ONLY the database logo (no fallback!) -->
         <img
           v-if="contactInfo?.logoLight"
           :src="contactInfo.logoLight"
@@ -30,7 +27,10 @@ onMounted(() => {
       </NuxtLink>
 
       <div class="bttn">
-        <NuxtLink to="/find-booking" class="cart-btn">FIND MY BOOKING</NuxtLink>
+        <!-- 👉 extra class find-btn so we can style it separately -->
+        <NuxtLink to="/find-booking" class="cart-btn find-btn">
+          FIND MY BOOKING
+        </NuxtLink>
 
         <!-- Cart icon -->
         <button
@@ -94,12 +94,12 @@ onMounted(() => {
   gap: 40px;
 }
 
-/* ====== Cart Button ====== */
+/* ====== Buttons ====== */
 .cart-btn {
   background: transparent;
   border: 1px solid #ffffff;
   border-radius: 10px;
-  padding: 15px;
+  padding: 15px 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,6 +108,7 @@ onMounted(() => {
   text-decoration: none;
   color: #ffffff;
   font-weight: 100;
+  font-size: 0.95rem;
 }
 
 .cart-btn:hover {
@@ -136,19 +137,47 @@ onMounted(() => {
   border: 2px solid #211a1a;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ===========================
+   Responsive
+   =========================== */
+@media (max-width: 900px) {
   .navbar-container {
     padding: 0.75rem 1.5rem;
   }
 
   .navbar-logo-img {
-    height: 40px;
+    height: 42px;
+  }
+
+  .bttn {
+    gap: 20px;
+  }
+
+  /* Make FIND MY BOOKING smaller */
+  .find-btn {
+    padding: 10px 14px;
+    font-size: 0.8rem;
+  }
+
+  .cart-btn {
+    padding: 10px 12px;
   }
 
   .cart-icon {
     width: 20px;
     height: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .bttn {
+    gap: 10px;
+  }
+
+  .find-btn {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
   }
 }
 </style>
