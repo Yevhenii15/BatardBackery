@@ -1,6 +1,9 @@
 <script setup>
 import { useCartPanel } from "~/composables/useCartPanel";
+import { useCart } from "~/composables/useCart";
+
 const { open } = useCartPanel();
+const { items } = useCart(); // <-- gives reactive cart items
 </script>
 
 <template>
@@ -18,7 +21,11 @@ const { open } = useCartPanel();
       <div class="bttn">
         <NuxtLink to="/find-booking" class="cart-btn">FIND MY BOOKING</NuxtLink>
         <!-- Cart icon -->
-        <button class="cart-btn" @click="open" aria-label="Open cart">
+        <button
+          class="cart-btn cart-wrapper"
+          @click="open"
+          aria-label="Open cart"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -35,6 +42,9 @@ const { open } = useCartPanel();
               d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
             />
           </svg>
+
+          <!-- 🔴 RED DOT (only shows when cart has items) -->
+          <span v-if="items.length > 0" class="cart-dot"></span>
         </button>
       </div>
     </div>
@@ -100,7 +110,20 @@ const { open } = useCartPanel();
   height: 24px;
   color: #ffffff;
 }
+.cart-wrapper {
+  position: relative;
+}
 
+.cart-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 12px;
+  height: 12px;
+  background-color: #ff3b30;
+  border-radius: 50%;
+  border: 2px solid #211a1a; /* matches navbar background */
+}
 /* ====== Responsive Layout ====== */
 @media (max-width: 768px) {
   .navbar-container {
