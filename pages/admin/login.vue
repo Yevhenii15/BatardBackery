@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "~/composables/useAuth";
+import { useContactInfo } from "~/composables/useContactInfo";
 
 const router = useRouter();
 const { login, loading, error } = useAuth();
 
+// 🔹 Contact info composable
+const { contactInfo, getContactInfo } = useContactInfo();
+
 const form = ref({
   email: "",
   password: "",
+});
+
+// Load contact info (including logo) on mount
+onMounted(async () => {
+  await getContactInfo();
 });
 
 const onSubmit = async () => {
@@ -22,7 +31,13 @@ const onSubmit = async () => {
     <div class="login-window">
       <!-- Logo -->
       <div class="logo-container">
-        <img src="/img/logo.png" alt="Batard logo" class="logo-img" />
+        <!-- Use logo from contact info if available -->
+        <img
+          v-if="contactInfo && contactInfo.logo"
+          :src="contactInfo.logo"
+          alt="Batard logo"
+          class="logo-img"
+        />
       </div>
 
       <h1 class="title">Welcome, Admin!</h1>

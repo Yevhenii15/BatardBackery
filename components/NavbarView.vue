@@ -1,9 +1,18 @@
 <script setup>
+import { onMounted } from "vue";
 import { useCartPanel } from "~/composables/useCartPanel";
 import { useCart } from "~/composables/useCart";
+import { useContactInfo } from "~/composables/useContactInfo";
 
 const { open } = useCartPanel();
-const { items } = useCart(); //
+const { items } = useCart();
+
+// ⭐ Load contact info (including logo)
+const { contactInfo, getContactInfo } = useContactInfo();
+
+onMounted(() => {
+  getContactInfo();
+});
 </script>
 
 <template>
@@ -11,15 +20,18 @@ const { items } = useCart(); //
     <div class="navbar-container">
       <!-- Logo (clickable -> home) -->
       <NuxtLink to="/" class="navbar-logo" aria-label="Go to homepage">
+        <!-- ⭐ Show ONLY the database logo (no fallback!) -->
         <img
-          src="/img/logo.png"
-          alt="Batard Bakery Logo"
+          v-if="contactInfo?.logo"
+          :src="contactInfo.logo"
+          alt="Bakery Logo"
           class="navbar-logo-img"
         />
       </NuxtLink>
 
       <div class="bttn">
         <NuxtLink to="/find-booking" class="cart-btn">FIND MY BOOKING</NuxtLink>
+
         <!-- Cart icon -->
         <button
           class="cart-btn cart-wrapper"
@@ -43,7 +55,7 @@ const { items } = useCart(); //
             />
           </svg>
 
-          <!-- 🔴 RED DOT (only shows when cart has items) -->
+          <!-- 🔴 Red dot -->
           <span v-if="items.length > 0" class="cart-dot"></span>
         </button>
       </div>
@@ -72,19 +84,16 @@ const { items } = useCart(); //
 }
 
 /* ====== Logo ====== */
-.navbar-logo {
-  display: flex;
-  align-items: center;
-}
-
 .navbar-logo-img {
   height: 50px;
   width: auto;
 }
+
 .bttn {
   display: flex;
   gap: 40px;
 }
+
 /* ====== Cart Button ====== */
 .cart-btn {
   background: transparent;
@@ -110,10 +119,12 @@ const { items } = useCart(); //
   height: 24px;
   color: #ffffff;
 }
+
 .cart-wrapper {
   position: relative;
 }
 
+/* 🔴 Notification dot */
 .cart-dot {
   position: absolute;
   top: 5px;
@@ -122,9 +133,10 @@ const { items } = useCart(); //
   height: 12px;
   background-color: #ff3b30;
   border-radius: 50%;
-  border: 2px solid #211a1a; /* matches navbar background */
+  border: 2px solid #211a1a;
 }
-/* ====== Responsive Layout ====== */
+
+/* Responsive */
 @media (max-width: 768px) {
   .navbar-container {
     padding: 0.75rem 1.5rem;
