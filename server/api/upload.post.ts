@@ -1,82 +1,58 @@
 // server/api/upload.post.ts
-import formidable, { File } from "formidable";
 import fs from "fs";
+import fsp from "fs/promises";
 import path from "path";
+import { readMultipartFormData } from "h3";
 
 export const config = {
   bodyParser: false,
 };
 
+const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+
 export default defineEventHandler(async (event) => {
-  // ✅ Always use <project root>/public/uploads
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
+  // Ensure upload dir exists (works on Render too, assuming writable disk)
+  await fsp.mkdir(uploadDir, { recursive: true });
 
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log("[upload] created uploadDir:", uploadDir);
+  const formData = await readMultipartFormData(event);
+  if (!formData || formData.length === 0) {
+    throw createError({ statusCode: 400, statusMessage: "No form data" });
   }
 
-  const form = formidable({
-    multiples: false,
-    uploadDir,
-    keepExtensions: true,
-    maxFileSize: 5 * 1024 * 1024, // 5 MB
-  });
-
-  try {
-    const data = await new Promise<{ url: string }>((resolve, reject) => {
-      form.parse(event.node.req, (err, fields, files) => {
-        if (err) {
-          console.error("[upload] formidable error:", err);
-          return reject(err);
-        }
-
-        // 🔁 Delete old file(s) if oldUrl provided
-        if (fields.oldUrl) {
-          const oldUrls = Array.isArray(fields.oldUrl)
-            ? fields.oldUrl
-            : [fields.oldUrl];
-
-          oldUrls.forEach((urlStr) => {
-            const clean = String(urlStr).replace(/^\/+/g, ""); // remove leading "/"
-            const oldFilePath = path.join(
-              process.cwd(),
-              "public",
-              clean // e.g. "uploads/xxx.png"
-            );
-
-            if (fs.existsSync(oldFilePath)) {
-              fs.unlinkSync(oldFilePath);
-              console.log("[upload] deleted old file:", oldFilePath);
-            }
-          });
-        }
-
-        // ✅ Get uploaded file (same pattern as old working code)
-        const allFiles = files as any;
-        let file: File;
-
-        if (Array.isArray(allFiles.file)) {
-          file = allFiles.file[0] as File;
-        } else if (allFiles.file) {
-          file = allFiles.file as File;
-        } else {
-          return reject(new Error("No file uploaded"));
-        }
-
-        console.log("[upload] saved file at:", file.filepath);
-
-        const fileUrl = `/uploads/${path.basename(file.filepath)}`;
-        console.log("[upload] returning URL:", fileUrl);
-
-        resolve({ url: fileUrl });
-      });
-    });
-
-    return data;
-  } catch (err) {
-    console.error("[upload] Upload error:", err);
-    setResponseStatus(event, 500);
-    return { message: "Upload failed" };
+  // Get the file part (same field name as in your composable: "file")
+  const filePart = formData.find((p) => p.type === "file" && p.name === "file");
+  if (!filePart) {
+    throw createError({ statusCode: 400, statusMessage: "No file uploaded" });
   }
+
+  // Optional oldUrl field (string)
+  const oldUrlPart = formData.find((p) => p.name === "oldUrl");
+
+  // Generate new file name
+  const original = filePart.filename || "upload";
+  const ext = path.extname(original);
+  const fileName =
+    Date.now().toString(36) + "-" + Math.random().toString(16).slice(2) + ext;
+
+  const filePath = path.join(uploadDir, fileName);
+
+  // Save file
+  await fsp.writeFile(filePath, filePart.data);
+  console.log("[upload] saved:", filePath);
+
+  // Delete old file if oldUrl was provided
+  if (oldUrlPart?.data) {
+    const oldUrl = oldUrlPart.data.toString("utf8"); // e.g. "/uploads/abc.png"
+    const clean = oldUrl.replace(/^\/+/, ""); // remove leading /
+    const oldFilePath = path.join(uploadDir, path.basename(clean));
+    if (fs.existsSync(oldFilePath)) {
+      await fsp.unlink(oldFilePath);
+      console.log("[upload] deleted old:", oldFilePath);
+    }
+  }
+
+  // We’ll serve from a dynamic route: /uploads/:name
+  const fileUrl = `/uploads/${fileName}`;
+
+  return { url: fileUrl };
 });
