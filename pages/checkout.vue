@@ -31,38 +31,55 @@
 
       <!-- Everything that depends on localStorage/cart goes here -->
       <ClientOnly>
-        <!-- Empty cart (only if no booking success) -->
-        <div v-if="items.length === 0 && !success" class="empty-state">
-          <p>Your cart is empty.</p>
-          <NuxtLink to="/products" class="primary-btn">
-            Go to products
-          </NuxtLink>
+        <!-- 🔄 Show loading while booking is being finalized after Stripe -->
+        <div v-if="finalizingBooking" class="empty-state loading-state">
+          <div class="spinner"></div>
+          <p>We are confirming your booking. Please wait…</p>
         </div>
 
-        <!-- SUCCESS (FULL SCREEN) -->
-        <CheckoutSuccessSummary v-if="success && booking" :booking="booking" />
+        <!-- Otherwise show normal states -->
+        <template v-else>
+          <!-- Empty cart (only if no booking success) -->
+          <div v-if="items.length === 0 && !success" class="empty-state">
+            <p>Your cart is empty.</p>
+            <NuxtLink to="/products" class="primary-btn">
+              Go to products
+            </NuxtLink>
+          </div>
 
-        <!-- MAIN CHECKOUT FORM -->
-        <div v-if="items.length > 0 && !success" class="checkout-grid">
-          <section class="left-column">
-            <CustomerForm v-model:customer="customer" />
-            <PickupGroupsForm
-              v-model:groups="pickupGroups"
-              v-model:date="pickupDate"
-              :today="today"
-              :timeSlots="timeSlots"
-            />
-          </section>
+          <!-- SUCCESS (FULL SCREEN) -->
+          <CheckoutSuccessSummary
+            v-if="success && booking"
+            :booking="booking"
+          />
 
-          <section class="right-column">
-            <OrderSummary
-              :items="items"
-              :totalPrice="totalPrice"
-              :submitting="submitting"
-              @submit="handleSubmit"
-            />
-          </section>
-        </div>
+          <!-- MAIN CHECKOUT FORM -->
+          <div v-if="items.length > 0 && !success" class="checkout-grid">
+            <section class="left-column">
+              <CustomerForm v-model:customer="customer" />
+              <PickupGroupsForm
+                v-model:groups="pickupGroups"
+                v-model:date="pickupDate"
+                :today="today"
+                :timeSlots="timeSlots"
+              />
+            </section>
+
+            <section class="right-column">
+              <OrderSummary
+                :items="items"
+                :totalPrice="totalPrice"
+                :submitting="submitting"
+                @submit="handleSubmit"
+              />
+
+              <!-- Stripe / booking errors -->
+              <p v-if="formError" class="error-text">
+                {{ formError }}
+              </p>
+            </section>
+          </div>
+        </template>
       </ClientOnly>
     </section>
   </main>
@@ -87,24 +104,33 @@ import {
   type PickupGroupState,
 } from "~/composables/useCheckoutPickup";
 
+import { useStripeCheckout } from "~/composables/useStripe";
+
 import CustomerForm from "../components/checkout/CustomerForm.vue";
 import PickupGroupsForm from "../components/checkout/PickupGroupsForm.vue";
 import OrderSummary from "../components/checkout/OrderSummary.vue";
 import CheckoutSuccessSummary from "~/components/checkout/CheckoutSuccessSummary.vue";
-
-const PENDING_BOOKING_KEY = "batard_pending_booking";
 
 const route = useRoute();
 
 const { items, totalPrice, clearCart, setQuantity, removeItem } = useCart();
 const { categories, getCategories, loading: categoriesLoading } = useCategory();
 const {
-  createBooking,
   loading: bookingLoading,
   error: bookingError,
   booking,
   checkCapacity,
 } = useBooking();
+
+// 🔹 Stripe-related state & helpers
+const {
+  paymentStatus,
+  success,
+  stripeError,
+  storePendingBooking,
+  finalizeBookingFromStripe,
+  startStripeCheckout,
+} = useStripeCheckout();
 
 const { today, pickupDate, pickupGroups, timeSlots, rebuildPickupGroups } =
   useCheckoutPickup(items, categories);
@@ -117,17 +143,14 @@ const customer = reactive<BookingCustomer>({
 });
 
 const formError = ref<string | null>(null);
-const success = ref(false);
+
+// 🔄 show “we’re confirming your booking…” while backend creates it
+const finalizingBooking = ref(false);
 
 const submitting = computed(
-  () => bookingLoading.value || categoriesLoading.value
+  () =>
+    bookingLoading.value || categoriesLoading.value || finalizingBooking.value
 );
-
-// read ?payment=success / cancelled
-const paymentStatus = computed<string | null>(() => {
-  const q = route.query.payment;
-  return typeof q === "string" ? q : null;
-});
 
 onMounted(async () => {
   await getCategories();
@@ -135,7 +158,13 @@ onMounted(async () => {
 
   // If we just came back from Stripe with success -> finalize booking
   if (paymentStatus.value === "success") {
-    await finalizeBookingFromStripe();
+    finalizingBooking.value = true;
+    const ok = await finalizeBookingFromStripe();
+    finalizingBooking.value = false;
+
+    if (!ok && stripeError.value) {
+      formError.value = stripeError.value;
+    }
   }
 });
 
@@ -186,8 +215,8 @@ const buildBookingPayload = (): BookingCreateInput | null => {
  * 1) validate form
  * 2) check capacity
  * 3) build booking payload
- * 4) store it in sessionStorage
- * 5) redirect to Stripe test checkout
+ * 4) store it in sessionStorage (via composable)
+ * 5) redirect to Stripe test checkout (via composable)
  */
 const handleSubmit = async () => {
   formError.value = null;
@@ -275,98 +304,17 @@ const handleSubmit = async () => {
     return;
   }
 
-  if (import.meta.client) {
-    sessionStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify(bookingPayload));
-  }
+  // Store pending booking via Stripe composable
+  storePendingBooking(bookingPayload);
 
   // ============================
   // Redirect to Stripe test checkout
   // ============================
   await startStripeCheckout();
-};
 
-/**
- * After Stripe redirects back with ?payment=success
- * we read the pending booking payload from sessionStorage
- * and actually create the booking in our backend.
- */
-const finalizeBookingFromStripe = async () => {
-  if (!import.meta.client) return;
-  if (success.value) return;
-
-  const raw = sessionStorage.getItem(PENDING_BOOKING_KEY);
-  if (!raw) {
-    // no draft booking – nothing to do
-    return;
-  }
-
-  let payload: BookingCreateInput;
-  try {
-    payload = JSON.parse(raw);
-  } catch {
-    formError.value =
-      "Payment succeeded but booking data was invalid. Please contact us.";
-    return;
-  }
-
-  const created = await createBooking(payload);
-
-  if (!created) {
-    formError.value =
-      "Payment succeeded but booking could not be created. Please contact us.";
-    return;
-  }
-
-  success.value = true;
-
-  // clear stored draft + cart
-  sessionStorage.removeItem(PENDING_BOOKING_KEY);
-  clearCart();
-};
-
-/**
- * Stripe test checkout:
- * uses current cart items for line items.
- * Backend should:
- * - read items & total
- * - create Stripe Checkout Session
- * - redirect to success/cancel URLs
- */
-const startStripeCheckout = async () => {
-  formError.value = null;
-
-  if (!items.value.length) {
-    formError.value = "Your cart is empty.";
-    return;
-  }
-
-  try {
-    const payload = {
-      items: items.value.map((item: any) => ({
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      // optional extras you can use in backend:
-      totalPrice: totalPrice.value,
-    };
-
-    const res = await $fetch<{ url: string }>("/api/stripe/checkout", {
-      method: "POST",
-      body: payload,
-    });
-
-    if (!res.url) {
-      formError.value = "Could not start Stripe checkout.";
-      return;
-    }
-
-    // redirect to Stripe Checkout (test mode)
-    window.location.href = res.url;
-  } catch (err) {
-    console.error(err);
-    formError.value =
-      "Stripe checkout failed. Please try again or contact the bakery.";
+  // If composable set a Stripe error, show it in the form
+  if (stripeError.value) {
+    formError.value = stripeError.value;
   }
 };
 </script>
@@ -446,5 +394,26 @@ const startStripeCheckout = async () => {
 .error-text {
   color: #b3261e;
   margin-top: 1rem;
+}
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid #d1d5db;
+  border-top-color: #6f7d75;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
