@@ -38,9 +38,9 @@ onMounted(() => {
       <div class="footer-left">
         <div class="footer-logo">
           <img
-            v-if="contactInfo?.logo"
+            v-if="contactInfo?.logoDark"
             class="footer-logo-img"
-            :src="contactInfo.logo"
+            :src="contactInfo.logoDark"
             alt="Company Logo"
           />
         </div>

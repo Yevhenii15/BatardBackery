@@ -6,7 +6,10 @@ const ContactInfoSchema = new Schema(
     phone: { type: String, required: true, trim: true },
     openingHours: { type: String, default: "" },
     address: { type: String, required: true },
-    logo: { type: String, default: "" },
+
+    logoLight: { type: String, default: "" },
+    logoDark: { type: String, default: "" },
+
     cvr: { type: String, default: "" },
   },
   { timestamps: true }

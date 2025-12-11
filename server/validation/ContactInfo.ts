@@ -5,7 +5,8 @@ export const ContactInfoInput = z.object({
   phone: z.string().min(8),
   openingHours: z.string().optional().default(""),
   address: z.string().min(5),
-  logo: z.string().optional().default(""),
+  logoLight: z.string().optional().default(""),
+  logoDark: z.string().optional().default(""),
   cvr: z.string().min(8),
 });
 

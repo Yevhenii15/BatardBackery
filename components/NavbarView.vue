@@ -22,8 +22,8 @@ onMounted(() => {
       <NuxtLink to="/" class="navbar-logo" aria-label="Go to homepage">
         <!-- ⭐ Show ONLY the database logo (no fallback!) -->
         <img
-          v-if="contactInfo?.logo"
-          :src="contactInfo.logo"
+          v-if="contactInfo?.logoLight"
+          :src="contactInfo.logoLight"
           alt="Bakery Logo"
           class="navbar-logo-img"
         />

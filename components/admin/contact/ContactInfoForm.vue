@@ -24,12 +24,16 @@ const form = reactive<ContactInfo>({
   address: "",
   openingHours: "",
   cvr: "",
-  logo: "",
+  logoLight: "",
+  logoDark: "",
 });
 
 // logo upload state
-const selectedLogo = ref<File | null>(null);
-const previewLogo = ref<string | null>(null);
+const selectedLogoLight = ref<File | null>(null);
+const selectedLogoDark = ref<File | null>(null);
+
+const previewLogoLight = ref<string | null>(null);
+const previewLogoDark = ref<string | null>(null);
 
 const { uploadImage } = useImageUpload();
 
@@ -44,10 +48,14 @@ watch(
     form.address = val.address ?? "";
     form.openingHours = val.openingHours ?? "";
     form.cvr = val.cvr ?? "";
-    form.logo = val.logo ?? "";
+    form.logoLight = val.logoLight ?? "";
+    form.logoDark = val.logoDark ?? "";
 
-    previewLogo.value = form.logo || null;
-    selectedLogo.value = null;
+    previewLogoLight.value = form.logoLight || null;
+    previewLogoDark.value = form.logoDark || null;
+
+    selectedLogoLight.value = null;
+    selectedLogoDark.value = null;
   },
   { immediate: true }
 );
@@ -59,28 +67,52 @@ const onSubmit = async () => {
     address: form.address,
     openingHours: form.openingHours,
     cvr: form.cvr,
-    logo: form.logo,
+    logoLight: form.logoLight,
+    logoDark: form.logoDark,
   };
 
   try {
-    if (selectedLogo.value) {
-      const url = await uploadImage(selectedLogo.value, form.logo || undefined);
-      payload.logo = url;
+    // upload light logo (for dark backgrounds)
+    if (selectedLogoLight.value) {
+      const urlLight = await uploadImage(
+        selectedLogoLight.value,
+        form.logoLight || undefined
+      );
+      payload.logoLight = urlLight;
+    }
+
+    // upload dark logo (for light backgrounds)
+    if (selectedLogoDark.value) {
+      const urlDark = await uploadImage(
+        selectedLogoDark.value,
+        form.logoDark || undefined
+      );
+      payload.logoDark = urlDark;
     }
   } catch (err) {
-    alert("Failed to upload logo.");
+    alert("Failed to upload logo(s).");
     return;
   }
 
   emit("submit", payload);
 };
 
-const onLogoChange = (e: Event) => {
+const onLogoLightChange = (e: Event) => {
   const target = e.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
-  selectedLogo.value = file;
-  previewLogo.value = URL.createObjectURL(file);
+
+  selectedLogoLight.value = file;
+  previewLogoLight.value = URL.createObjectURL(file);
+};
+
+const onLogoDarkChange = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  selectedLogoDark.value = file;
+  previewLogoDark.value = URL.createObjectURL(file);
 };
 
 const toggle = () => {
@@ -167,18 +199,40 @@ const toggle = () => {
         </div>
       </div>
 
-      <!-- Logo upload row -->
+      <!-- Logos upload row -->
       <div class="logo-row">
+        <!-- Light logo (for dark backgrounds) -->
         <div class="field field-logo">
-          <label>Logo</label>
-          <input type="file" accept="image/*" @change="onLogoChange" />
+          <label>Logo for dark background (light logo)</label>
+          <input type="file" accept="image/*" @change="onLogoLightChange" />
 
           <div class="image-preview">
-            <img v-if="previewLogo" :src="previewLogo" alt="Logo" />
-            <div v-else class="no-image">No logo</div>
+            <img
+              v-if="previewLogoLight"
+              :src="previewLogoLight"
+              alt="Light logo"
+            />
+            <div v-else class="no-image">No light logo</div>
           </div>
 
-          <p class="hint">SVG or PNG recommended.</p>
+          <p class="hint">Used on dark navbar. SVG or PNG recommended.</p>
+        </div>
+
+        <!-- Dark logo (for light backgrounds) -->
+        <div class="field field-logo">
+          <label>Logo for light background (dark logo)</label>
+          <input type="file" accept="image/*" @change="onLogoDarkChange" />
+
+          <div class="image-preview">
+            <img
+              v-if="previewLogoDark"
+              :src="previewLogoDark"
+              alt="Dark logo"
+            />
+            <div v-else class="no-image">No dark logo</div>
+          </div>
+
+          <p class="hint">Used on white backgrounds (e.g. footer).</p>
         </div>
       </div>
 

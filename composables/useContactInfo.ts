@@ -8,7 +8,8 @@ export interface ContactInfo {
   address: string;
   openingHours: string;
   cvr: string;
-  logo: string;
+  logoLight: string;
+  logoDark: string;
 }
 
 const contactInfo = ref<ContactInfo | null>(null);

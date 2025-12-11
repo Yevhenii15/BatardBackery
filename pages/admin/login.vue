@@ -33,8 +33,8 @@ const onSubmit = async () => {
       <div class="logo-container">
         <!-- Use logo from contact info if available -->
         <img
-          v-if="contactInfo && contactInfo.logo"
-          :src="contactInfo.logo"
+          v-if="contactInfo && contactInfo.logoLight"
+          :src="contactInfo.logoLight"
           alt="Batard logo"
           class="logo-img"
         />
