@@ -11,7 +11,7 @@ const emit = defineEmits<{
   (e: "cancelEdit"): void;
 }>();
 
-const collapsed = ref(false); // 🔥 collapse toggle
+const collapsed = ref(false); // collapse toggle
 
 const isEditMode = computed(() => !!props.modelValue);
 
