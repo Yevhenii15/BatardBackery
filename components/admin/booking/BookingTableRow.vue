@@ -48,7 +48,7 @@ const saveEdit = () => {
     archived: archived.value,
   });
 
-  // 🔥 update the row immediately (no reload needed)
+  // Update the row immediately (no reload needed)
   props.booking.status = status.value;
   props.booking.archived = archived.value;
 

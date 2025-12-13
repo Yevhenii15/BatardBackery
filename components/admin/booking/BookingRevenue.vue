@@ -43,7 +43,7 @@ const averageOrderValue = computed(() =>
   totalOrders.value ? totalRevenue.value / totalOrders.value : 0
 );
 
-// ✅ Revenue by category using booking.pickups[pickupIndex].categoryName
+// Revenue by category using booking.pickups[pickupIndex].categoryName
 const revenueByCategory = computed(() => {
   const map = new Map<string, { revenue: number; qty: number }>();
 

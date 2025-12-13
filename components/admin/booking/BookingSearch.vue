@@ -29,7 +29,7 @@ const onSearch = () => {
 // Reset
 const onReset = () => {
   search.value = "";
-  emit("reset"); // tell parent to reload all bookings
+  emit("reset"); 
 };
 </script>
 <style scoped>
