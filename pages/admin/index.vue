@@ -131,7 +131,7 @@ body {
   color: #5d7261;
 }
 
-/* Grid layout — 2 rows × 3 columns */
+/* Grid layout */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

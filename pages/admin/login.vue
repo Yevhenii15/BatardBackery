@@ -7,7 +7,6 @@ import { useContactInfo } from "~/composables/useContactInfo";
 const router = useRouter();
 const { login, loading, error } = useAuth();
 
-// 🔹 Contact info composable
 const { contactInfo, getContactInfo } = useContactInfo();
 
 const form = ref({
@@ -15,7 +14,7 @@ const form = ref({
   password: "",
 });
 
-// Load contact info (including logo) on mount
+// Load contact info on mount
 onMounted(async () => {
   await getContactInfo();
 });

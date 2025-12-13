@@ -30,7 +30,6 @@ const {
 
 const editingProduct = ref<Product | null>(null);
 
-// 🔹 ref to the form container (for scroll on Edit)
 const formSection = ref<HTMLElement | null>(null);
 
 const loading = computed(
@@ -39,7 +38,6 @@ const loading = computed(
 
 const error = computed(() => productsError.value || categoriesError.value);
 
-// 🔹 scroll helper: scroll to the form (top) when clicking Edit
 const scrollToForm = () => {
   nextTick(() => {
     if (!formSection.value) return;
@@ -54,7 +52,6 @@ const scrollToForm = () => {
   });
 };
 
-// 🔹 scroll helper: scroll to a product card after create/update
 const scrollToProduct = (id: string) => {
   nextTick(() => {
     const el = document.getElementById(`product-${id}`);
@@ -109,18 +106,17 @@ const handleSubmit = async (payload: ProductInput) => {
 // when clicking "Edit" in cards
 const handleEdit = (product: Product) => {
   editingProduct.value = product;
-  scrollToForm(); // 🔥 scroll up to the form again
+  scrollToForm(); // scroll up to the form again
 };
 
 // when clicking "Delete"
-// when clicking "Delete"
+
 const handleDelete = async (id: string) => {
   if (!confirm("Are you sure you want to delete this product?")) return;
 
   const ok = await deleteProduct(id);
   if (!ok) return;
 
-  // ✅ Remove from local list so the card disappears immediately
   products.value = products.value.filter((p) => p._id !== id);
 
   // Clear edit form if we were editing this one
@@ -157,7 +153,7 @@ const handleCancelEdit = () => {
 
     <!-- Layout: form + table -->
     <div>
-      <!-- 🔹 Form -->
+      <!-- Form -->
       <div ref="formSection">
         <AdminProductForm
           :key="editingProduct ? editingProduct._id : 'new'"

@@ -57,7 +57,6 @@
                 <th>Subject</th>
                 <th>Status</th>
                 <th>Note</th>
-                <!-- NEW -->
                 <th>Received</th>
                 <th class="text-right">Actions</th>
               </tr>
@@ -85,7 +84,6 @@
                   </span>
                 </td>
 
-                <!-- ⭐ NEW: admin note preview -->
                 <td class="note-preview">
                   <span v-if="m.adminNote && m.adminNote.trim().length">
                     {{
@@ -236,7 +234,6 @@ onMounted(async () => {
   await reload();
 });
 
-// when selection changes, sync edit fields
 watch(
   () => selected.value,
   (val) => {
@@ -246,7 +243,6 @@ watch(
   }
 );
 
-// helpers
 const formatDate = (iso: string) => {
   const d = new Date(iso);
   return d.toLocaleString("da-DK", {
@@ -276,7 +272,6 @@ const clearSelection = () => {
 const saveChanges = async () => {
   if (!selected.value) return;
 
-  // If status is "closed", your backend should set closedAt and TTL will handle deletion
   const ok = await updateMessage(selected.value._id, {
     status: editStatus.value,
     adminNote: editNote.value.trim() || "",
@@ -292,7 +287,6 @@ const saveChanges = async () => {
       editStatus.value = updated.status;
       editNote.value = updated.adminNote ?? "";
     } else {
-      // message might have disappeared (e.g. if your API filters closed ones)
       clearSelection();
     }
 

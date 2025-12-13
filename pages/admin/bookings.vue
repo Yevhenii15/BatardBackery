@@ -69,7 +69,6 @@ const {
 
 const loadingArchived = ref(false);
 
-// split into active / archived
 const activeBookings = computed(() =>
   bookings.value.filter((b) => !b.archived)
 );
@@ -86,9 +85,9 @@ const reloadBookings = async () => {
 };
 
 onMounted(async () => {
-  await getBookings(false); // active
+  await getBookings(false); 
   loadingArchived.value = true;
-  await getBookings(true); // archived
+  await getBookings(true); 
   loadingArchived.value = false;
 });
 
@@ -122,7 +121,7 @@ const searchBooking = async (value: string) => {
   }
 };
 
-// update booking (status / archived)
+
 const handleUpdateBooking = async (payload: {
   id: string;
   status: string;
@@ -192,7 +191,7 @@ const removeBooking = async (id: string) => {
   background: #283529;
 }
 
-/* Outer dark background, same as reference */
+/* Outer dark background */
 .admin-wrapper {
   background: #211a1a;
   min-height: 100vh;
@@ -202,7 +201,7 @@ const removeBooking = async (id: string) => {
   align-items: flex-start;
 }
 
-/* Green main container, centered */
+/* Green main container */
 .admin-container {
   background: #5d7261;
   width: 90%;
