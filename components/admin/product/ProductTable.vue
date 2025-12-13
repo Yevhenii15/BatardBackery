@@ -18,7 +18,7 @@ const getCategoryName = (id: string) => {
   return props.categories.find((c) => c._id === id)?.categoryName || "—";
 };
 
-// 🔹 Build dynamic sections: each category + its products
+// Build dynamic sections: each category + its products
 const sections = computed(() =>
   props.categories
     .map((cat) => ({
@@ -28,7 +28,7 @@ const sections = computed(() =>
     .filter((section) => section.items.length > 0)
 );
 
-// 🔽 collapsed state per category
+// collapsed state per category
 const collapsedMap = ref<Record<string, boolean>>({});
 
 const isCollapsed = (id: string) => !!collapsedMap.value[id];
@@ -98,7 +98,7 @@ const toggleSection = (id: string) => {
           </button>
         </header>
 
-        <!-- Grid of cards for this category -->
+        <!-- Grid of cards  -->
         <div v-if="!isCollapsed(section.category._id)" class="pg-grid">
           <div
             v-for="p in section.items"
@@ -241,7 +241,7 @@ const toggleSection = (id: string) => {
   color: #6b7280;
 }
 
-/* Collapse button (same style family as other admin buttons) */
+/* Collapse button  */
 .collapse-btn {
   display: inline-flex;
   align-items: center;

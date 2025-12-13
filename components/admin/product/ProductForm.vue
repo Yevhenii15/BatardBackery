@@ -16,7 +16,7 @@ const emit = defineEmits<{
 
 const isEditMode = computed(() => !!props.modelValue);
 
-// 🔽 collapsible state
+// collapsible form
 const collapsed = ref(false);
 
 const createEmptyForm = (): ProductInput => ({
@@ -75,7 +75,6 @@ const onSubmit = async () => {
     }
   }
 
-  // let parent decide what to do (create/update + clearing state)
   emit("submit", payload);
 };
 
@@ -246,7 +245,7 @@ const toggleCollapsed = () => {
   color: #2c2c2c;
 }
 
-/* Collapse button – same vibe as booking table */
+/* Collapse button */
 .collapse-btn {
   display: inline-flex;
   align-items: center;
@@ -323,7 +322,7 @@ textarea {
   border: 1px solid #dcdcdc;
   border-radius: 6px;
   padding: 8px 10px;
-  width: 95%; /* full width inside column */
+  width: 95%; 
   font-size: 14px;
   outline: none;
   color: #333;
@@ -333,7 +332,7 @@ select {
   border: 1px solid #dcdcdc;
   border-radius: 6px;
   padding: 8px 10px;
-  width: 100%; /* full width inside column */
+  width: 100%; 
   font-size: 14px;
   outline: none;
   color: #333;
@@ -346,7 +345,6 @@ textarea:focus {
   box-shadow: 0 0 0 2px #5d726155;
 }
 
-/* Description a bit taller so it visually matches left side height */
 .field-description textarea {
   min-height: 150px;
   resize: vertical;
