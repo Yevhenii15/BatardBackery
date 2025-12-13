@@ -16,7 +16,7 @@ const emit = defineEmits<{
 const collapsed = ref(false);
 const isLoaded = computed(() => !!props.hero);
 
-// local form state – matches backend fields now
+// local form state for hero section
 const form = reactive<HeroSection>({
   title: "",
   subTitle: "",
