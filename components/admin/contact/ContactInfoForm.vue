@@ -13,7 +13,7 @@ const emit = defineEmits<{
   (e: "submit", payload: ContactInfo): void;
 }>();
 
-// collapsible (like other admin forms)
+// collapsible form
 const collapsed = ref(false);
 const isLoaded = computed(() => !!props.contactInfo);
 
@@ -140,7 +140,7 @@ const toggle = () => {
 
     <!-- Form -->
     <form v-if="!collapsed" class="form-inner" @submit.prevent="onSubmit">
-      <!-- GRID: two equal columns -->
+      <!-- GRID -->
       <div class="form-grid">
         <!-- LEFT column -->
         <div class="col-left">
