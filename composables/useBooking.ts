@@ -1,4 +1,4 @@
-// composables/useBooking.ts
+
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
@@ -17,8 +17,8 @@ export interface BookingItemInput {
 
 export interface BookingPickupInput {
   categoryId: string;
-  date: string; // "YYYY-MM-DD"
-  timeSlot: string; // "HH:mm"
+  date: string; 
+  timeSlot: string; 
   orderNotes?: string;
 }
 
@@ -28,7 +28,7 @@ export interface BookingCreateInput {
   items: BookingItemInput[];
 }
 
-// Full booking as returned by API (simplified)
+
 export interface BookingItem {
   productId: string;
   name: string;
@@ -191,7 +191,7 @@ export function useBooking() {
       loading.value = false;
     }
   };
-  // composables/useBooking.ts (snippet)
+  // composables/useBooking.ts 
   const checkCapacity = async (date: string, cartItems: any[]) => {
     if (!date || !cartItems.length) {
       return { ok: false, byProduct: {} as Record<string, any> };

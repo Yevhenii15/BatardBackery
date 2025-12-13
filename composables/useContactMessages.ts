@@ -1,4 +1,3 @@
-// composables/useContactMessages.ts
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
@@ -22,9 +21,9 @@ export interface ContactMessage {
   phone?: string;
   message: string;
 
-  status: ContactStatus; // "open" | "closed"
-  adminNote: string; // matches model
-  closedAt?: string | null; // when status becomes "closed"
+  status: ContactStatus; 
+  adminNote: string; 
+  closedAt?: string | null; 
 
   createdAt: string;
   updatedAt: string;
@@ -39,7 +38,6 @@ const error = ref<string | null>(null);
 export function useContactMessages() {
   const api = useApiClient();
 
-  // PUBLIC: send message
   const sendMessage = async (data: ContactMessageInput) => {
     loading.value = true;
     error.value = null;
@@ -61,7 +59,6 @@ export function useContactMessages() {
     }
   };
 
-  // ADMIN: list messages (optional status filter)
   const getMessages = async (
     page = 1,
     pageSize = 20,
@@ -91,7 +88,6 @@ export function useContactMessages() {
     }
   };
 
-  // ADMIN: get one message
   const getMessageById = async (id: string) => {
     loading.value = true;
     error.value = null;
@@ -105,7 +101,6 @@ export function useContactMessages() {
     }
   };
 
-  // ADMIN: update status and/or adminNote
   const updateMessage = async (
     id: string,
     payload: { status?: ContactStatus; adminNote?: string }
@@ -119,11 +114,9 @@ export function useContactMessages() {
         body: payload,
       });
 
-      // update list
       const idx = messages.value.findIndex((m) => m._id === id);
       if (idx !== -1) messages.value[idx] = updated;
 
-      // update single
       if (message.value?._id === id) {
         message.value = updated;
       }

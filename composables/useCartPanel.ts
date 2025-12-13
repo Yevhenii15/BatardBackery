@@ -1,4 +1,3 @@
-// composables/useCartPanel.ts
 import { ref } from "vue";
 
 const isOpen = ref(false);

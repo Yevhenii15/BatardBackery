@@ -1,4 +1,3 @@
-// composables/useHero.ts
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
@@ -21,7 +20,6 @@ export function useHero() {
     error.value = null;
 
     try {
-      // backend returns: { title, subTitle, heroImg1, heroImg2, ... }
       hero.value = await api<HeroSection>("/api/hero");
     } catch (err: any) {
       error.value = err?.statusMessage || "Failed to fetch hero section";
@@ -35,7 +33,6 @@ export function useHero() {
     error.value = null;
 
     try {
-      // send same shape back
       const updated = await api<HeroSection>("/api/hero", {
         method: "PUT",
         body: data,

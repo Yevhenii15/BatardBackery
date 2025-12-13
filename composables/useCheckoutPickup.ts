@@ -1,11 +1,10 @@
-// composables/useCheckoutPickup.ts
 import { ref, watch } from "vue";
 import type { Ref } from "vue";
 import type { CartItem } from "./useCart";
 import type { Category } from "./useCategory";
 
 export interface PickupGroupState {
-  key: string; // schedule key
+  key: string; 
   categoryIds: string[];
   categoryNames: string;
   items: CartItem[];
@@ -20,7 +19,6 @@ export function useCheckoutPickup(
 ) {
   const today = new Date().toISOString().slice(0, 10);
 
-  // 🔹 One shared date for ALL pickup groups
   const pickupDate = ref<string>(today);
 
   const pickupGroups = ref<PickupGroupState[]>([]);
@@ -54,7 +52,6 @@ export function useCheckoutPickup(
           categoryIds: [cat._id],
           categoryNames: cat.categoryName,
           items: [],
-          // 🔹 use shared pickupDate
           date: pickupDate.value,
           timeSlot: "",
           orderNotes: "",
@@ -86,7 +83,7 @@ export function useCheckoutPickup(
     if (!cat) return [];
 
     const date = new Date(group.date + "T00:00:00");
-    const day = date.getDay(); // 0 = Sun, 6 = Sat
+    const day = date.getDay();
     const isWeekend = day === 0 || day === 6;
 
     const range = isWeekend ? cat.weekendsTime : cat.weekdayTime;
@@ -101,7 +98,7 @@ export function useCheckoutPickup(
     const slotSize = cat.slotSizeMinutes || 15;
     const lead = cat.leadTimeMinutes || 0;
 
-    // lead time for today
+
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
     if (group.date === todayStr) {
@@ -121,7 +118,6 @@ export function useCheckoutPickup(
     return slots;
   };
 
-  // 🔹 When cart or categories change → rebuild groups
   watch(
     [items, categories],
     () => {
@@ -130,13 +126,11 @@ export function useCheckoutPickup(
     { immediate: true }
   );
 
-  // 🔹 When shared pickupDate changes → update all groups' date
   watch(
     pickupDate,
     (newDate) => {
       pickupGroups.value.forEach((g) => {
         g.date = newDate;
-        // optional: reset time slot when date changes
         g.timeSlot = "";
       });
     },

@@ -1,10 +1,9 @@
-// composables/useCategory.ts
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
 export interface TimeRange {
-  from: string; // "HH:mm"
-  to: string; // "HH:mm"
+  from: string; 
+  to: string; 
 }
 
 export interface Category {
@@ -83,7 +82,6 @@ export function useCategory() {
         body: data,
       });
 
-      // Update local state
       const index = categories.value.findIndex((c) => c._id === id);
       if (index !== -1) categories.value[index] = updated;
       category.value = updated;

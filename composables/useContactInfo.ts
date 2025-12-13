@@ -1,4 +1,3 @@
-// composables/useContactInfo.ts
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 

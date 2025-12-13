@@ -1,4 +1,4 @@
-// composables/useAuth.ts
+
 import { ref, computed } from "vue";
 import { useApiClient } from "./useApiClient";
 
@@ -10,7 +10,7 @@ export interface AdminUser {
 const adminUser = ref<AdminUser | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
-const hasCheckedAuth = ref(false); // optional flag if you want to know when initial check is done
+const hasCheckedAuth = ref(false); 
 
 export function useAuth() {
   const api = useApiClient();
@@ -22,7 +22,7 @@ export function useAuth() {
     error.value = null;
 
     try {
-      // matches your login.post.ts response
+      
       const res = await api<{ token: string; user: AdminUser }>(
         "/api/auth/login",
         {
@@ -66,18 +66,18 @@ export function useAuth() {
   };
 
   const checkAuth = async () => {
-    // avoid spamming /api/auth/me if already checked in this session
+
     if (hasCheckedAuth.value && adminUser.value) return;
 
     loading.value = true;
     error.value = null;
 
     try {
-      // you need an /api/auth/me route that reads the cookie on server
+     
       const res = await api<{ user: AdminUser | null }>("/api/auth/me");
       adminUser.value = res.user;
     } catch (err: any) {
-      // if token invalid/expired, just treat as logged out
+     
       adminUser.value = null;
     } finally {
       loading.value = false;
@@ -86,14 +86,14 @@ export function useAuth() {
   };
 
   return {
-    // state
+    
     adminUser,
     isLoggedIn,
     loading,
     error,
     hasCheckedAuth,
 
-    // actions
+    
     login,
     logout,
     checkAuth,

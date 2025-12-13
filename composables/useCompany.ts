@@ -1,4 +1,3 @@
-// composables/useCompany.ts
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
@@ -19,7 +18,6 @@ export function useCompany() {
     error.value = null;
 
     try {
-      // public GET /api/company
       company.value = await api<Company>("/api/company");
     } catch (err: any) {
       error.value = err?.statusMessage || "Failed to fetch company info";
@@ -33,10 +31,9 @@ export function useCompany() {
     error.value = null;
 
     try {
-      // protected PUT /api/company (admin only, cookie-based auth)
       company.value = await api<Company>("/api/company", {
         method: "PUT",
-        body: data, // 👈 { shortDescription, description }
+        body: data, 
       });
       alert("Company information updated successfully.");
       return true;

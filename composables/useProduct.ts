@@ -1,4 +1,3 @@
-// composables/useProduct.ts
 import { ref } from "vue";
 import { useApiClient } from "./useApiClient";
 
@@ -97,14 +96,12 @@ export function useProduct() {
     }
   };
 
-  // composables/useProduct.ts
   const deleteProduct = async (id: string) => {
     loading.value = true;
     error.value = null;
 
     try {
       await api(`/api/product/${id}`, { method: "DELETE" });
-      // ✅ Only return true; don't touch products here
       return true;
     } catch (err: any) {
       error.value =

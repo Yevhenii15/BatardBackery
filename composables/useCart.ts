@@ -1,4 +1,3 @@
-// composables/useCart.ts
 import { ref, computed } from "vue";
 import type { Product } from "~/composables/useProduct";
 
@@ -10,14 +9,12 @@ export interface CartItem {
   quantity: number;
   categoryId: string;
 
-  // 🔥 needed so cart can enforce limits
   dailyCapacity?: number;
   stock?: number;
 }
 
 const STORAGE_KEY = "batard_cart";
 
-// shared state
 const items = ref<CartItem[]>([]);
 const initialized = ref(false);
 
@@ -25,7 +22,7 @@ const loadFromStorage = () => {
   if (initialized.value) return;
   initialized.value = true;
 
-  if (import.meta.server) return; // do nothing on SSR
+  if (import.meta.server) return;
 
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return;
@@ -60,7 +57,6 @@ export function useCart() {
     items.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
   );
 
-  // 🔥 helper: calculate max allowed for a product
   const calcMaxForProduct = (product: Product | CartItem) => {
     const cap =
       typeof (product as any).dailyCapacity === "number"
@@ -79,7 +75,7 @@ export function useCart() {
     const max = calcMaxForProduct(product);
 
     if (existing) {
-      // ensure we also store limits on existing items
+      
       if (existing.dailyCapacity === undefined) {
         existing.dailyCapacity = product.dailyCapacity;
       }
