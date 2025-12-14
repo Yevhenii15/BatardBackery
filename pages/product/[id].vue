@@ -66,9 +66,7 @@
             </button>
           </template>
 
-          <!-- We still have some left -->
           <template v-else>
-            <!-- Initial state: just button -->
             <button
               v-if="!showSelector"
               class="add-to-cart-btn"
@@ -78,7 +76,6 @@
               Add to cart
             </button>
 
-            <!-- After click: selector + confirm -->
             <div v-else class="qty-row">
               <button
                 type="button"
@@ -157,7 +154,7 @@ const router = useRouter();
 const { product, loading, error, getProductById } = useProduct();
 const { addItem, items } = useCart();
 
-// 🔹 categories (for pickup times)
+// categories (for pickup times)
 const { categories, getCategories } = useCategory();
 
 // ===== Load product + categories =====
@@ -187,10 +184,9 @@ const maxPerOrder = computed(() => {
     typeof p.stock === "number" ? p.stock : Number.POSITIVE_INFINITY;
 
   const max = Math.min(cap, stock);
-  return max === Number.POSITIVE_INFINITY ? 99 : max; // fallback
+  return max === Number.POSITIVE_INFINITY ? 99 : max; 
 });
 
-// How many of this product are already in cart
 const alreadyInCart = computed(() => {
   if (!product.value) return 0;
   const id = (product.value as any)._id;
@@ -205,13 +201,11 @@ const alreadyInCart = computed(() => {
   }, 0);
 });
 
-// Remaining we can still add
 const remaining = computed(() => {
   const rem = maxPerOrder.value - alreadyInCart.value;
   return rem > 0 ? rem : 0;
 });
 
-// 🔹 Category of this product
 const productCategory = computed<Category | null>(() => {
   if (!product.value) return null;
   return (
@@ -219,7 +213,6 @@ const productCategory = computed<Category | null>(() => {
   );
 });
 
-// 🔹 Texts for pickup times
 const weekdayTimesText = computed(() => {
   if (!productCategory.value) return "";
   const { weekdayTime } = productCategory.value;

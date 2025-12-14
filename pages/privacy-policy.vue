@@ -8,7 +8,7 @@ import FooterView from "~/components/FooterView.vue";
     <Navbar />
 
     <main class="policy-section">
-      <!-- ===== BACK BUTTON (same style as Order page) ===== -->
+      <!--BACK BUTTON -->
       <button class="back-btn" @click="$router.push('/')">
         <svg viewBox="0 0 24 24" class="arrow-icon">
           <path
@@ -139,19 +139,18 @@ import FooterView from "~/components/FooterView.vue";
 /* Layout top-down */
 .policy-section {
   width: 100%;
-  margin-top: 80px; /* navbar offset */
+  margin-top: 80px; 
   padding-bottom: 4rem;
 }
 
-/* ===== BACK BUTTON (copied from Order page) ===== */
-/* ===== BACK BUTTON (white version) ===== */
+
 .back-btn {
   position: fixed;
-  top: 100px; /* below navbar */
+  top: 100px;
   left: 25px;
   width: 48px;
   height: 48px;
-  background: #ffffff; /* WHITE background */
+  background: #ffffff;
   border: none;
   border-radius: 50%;
   display: flex;
@@ -163,20 +162,18 @@ import FooterView from "~/components/FooterView.vue";
   transition: 0.25s ease;
 }
 
-/* Hover effect: light green tint */
+
 .back-btn:hover {
-  background: #e8f0ec; /* subtle green tint */
+  background: #e8f0ec; 
   transform: scale(1.07);
 }
 
-/* Green arrow */
 .arrow-icon {
   width: 22px;
   height: 22px;
-  color: #6f7d75; /* match your brand green */
+  color: #6f7d75; 
 }
 
-/* Content card section */
 .policy-content {
   width: 100%;
   background: #707f78;

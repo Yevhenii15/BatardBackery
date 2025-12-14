@@ -29,15 +29,13 @@
         </p>
       </header>
 
-      <!-- Everything that depends on localStorage/cart goes here -->
       <ClientOnly>
-        <!-- 🔄 Show loading while booking is being finalized after Stripe -->
+        <!--  Show loading while booking is being finalized after Stripe -->
         <div v-if="finalizingBooking" class="empty-state loading-state">
           <div class="spinner"></div>
           <p>We are confirming your booking. Please wait…</p>
         </div>
 
-        <!-- Otherwise show normal states -->
         <template v-else>
           <!-- Empty cart (only if no booking success) -->
           <div v-if="items.length === 0 && !success" class="empty-state">
@@ -122,7 +120,6 @@ const {
   checkCapacity,
 } = useBooking();
 
-// 🔹 Stripe-related state & helpers
 const {
   paymentStatus,
   success,
@@ -144,7 +141,6 @@ const customer = reactive<BookingCustomer>({
 
 const formError = ref<string | null>(null);
 
-// 🔄 show “we’re confirming your booking…” while backend creates it
 const finalizingBooking = ref(false);
 
 const submitting = computed(
@@ -156,7 +152,6 @@ onMounted(async () => {
   await getCategories();
   rebuildPickupGroups();
 
-  // If we just came back from Stripe with success -> finalize booking
   if (paymentStatus.value === "success") {
     finalizingBooking.value = true;
     const ok = await finalizeBookingFromStripe();
@@ -174,9 +169,7 @@ const goBack = () => {
   }
 };
 
-/**
- * Build booking payload from current state.
- */
+
 const buildBookingPayload = (): BookingCreateInput | null => {
   if (!pickupDate.value) return null;
 
@@ -210,14 +203,7 @@ const buildBookingPayload = (): BookingCreateInput | null => {
   };
 };
 
-/**
- * Main flow triggered from OrderSummary submit:
- * 1) validate form
- * 2) check capacity
- * 3) build booking payload
- * 4) store it in sessionStorage (via composable)
- * 5) redirect to Stripe test checkout (via composable)
- */
+
 const handleSubmit = async () => {
   formError.value = null;
 
@@ -248,9 +234,8 @@ const handleSubmit = async () => {
     }
   }
 
-  // ============================
+
   // CHECK CAPACITY FOR THE DAY
-  // ============================
   const capacityResult = await checkCapacity(pickupDate.value, items.value);
   const byProduct = capacityResult?.byProduct || {};
 
@@ -267,11 +252,9 @@ const handleSubmit = async () => {
       adjusted = true;
 
       if (remaining <= 0) {
-        // nothing left → remove from cart
         removeItem(item.productId);
         messages.push(`${item.name}: no items left for ${pickupDate.value}.`);
       } else {
-        // clamp to remaining
         const old = item.quantity;
         setQuantity(item.productId, remaining);
         messages.push(
@@ -295,24 +278,21 @@ const handleSubmit = async () => {
     return;
   }
 
-  // ============================
+
   // Build & store booking payload
-  // ============================
+
   const bookingPayload = buildBookingPayload();
   if (!bookingPayload) {
     formError.value = "Could not build booking data. Please try again.";
     return;
   }
 
-  // Store pending booking via Stripe composable
   storePendingBooking(bookingPayload);
 
-  // ============================
   // Redirect to Stripe test checkout
-  // ============================
+
   await startStripeCheckout();
 
-  // If composable set a Stripe error, show it in the form
   if (stripeError.value) {
     formError.value = stripeError.value;
   }

@@ -16,7 +16,7 @@
 
   <main class="find-page">
     <section class="find-container">
-      <!-- PAGE HEADER (styled like ORDER page) -->
+      <!-- PAGE HEADER -->
       <header class="find-header">
         <h1 class="find-title">FIND BOOKING</h1>
         <p class="find-subtitle">
@@ -75,15 +75,12 @@ import FooterView from "~/components/FooterView.vue";
 
 const router = useRouter();
 
-// form fields
 const bookingNumber = ref("");
 const lastName = ref("");
 
-// useBooking composable
 const { booking, loading, error, lookupBooking } = useBooking();
 
 const handleSearch = async () => {
-  // clear previous result / error
   error.value = null;
   booking.value = null;
 
@@ -143,7 +140,7 @@ const handleSearch = async () => {
   padding: 3rem 1.5rem 4rem;
 }
 
-/* ===== HEADER (match ORDER page feeling) ===== */
+/* HEADER */
 .find-header {
   text-align: center;
   background: #f4f4f4;
@@ -167,7 +164,7 @@ const handleSearch = async () => {
   font-weight: 600;
 }
 
-/* ===== FORM & RESULT ===== */
+/* FORM & RESULT */
 .find-form {
   margin-top: 1.25rem;
   padding: 1.5rem;

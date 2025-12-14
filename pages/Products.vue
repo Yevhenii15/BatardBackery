@@ -1,7 +1,7 @@
 <template>
   <Navbar />
   <section class="order-of-products">
-    <!-- ===== BACK BUTTON ===== -->
+    <!-- BACK BUTTON  -->
     <button class="back-btn" @click="$router.push('/')">
       <svg viewBox="0 0 24 24" class="arrow-icon">
         <path
@@ -15,7 +15,7 @@
       </svg>
     </button>
 
-    <!-- ===== PAGE HEADER ===== -->
+    <!-- PAGE HEADER -->
     <section class="order-header">
       <h1 class="order-title">ORDER</h1>
       <p class="order-subtitle">Skip the line – pick up in the bakery</p>
@@ -40,7 +40,6 @@
           {{ section.category.categoryName }}
         </h2>
 
-        <!-- 👇 NEW: pickup times text -->
         <p class="category-times">
           Pick up times — (Weekdays:
           <strong>
@@ -64,7 +63,6 @@
             class="product-card"
             :class="{ 'sold-out': remainingForProduct(item) <= 0 }"
           >
-            <!-- OUT OF STOCK badge -->
             <div v-if="remainingForProduct(item) <= 0" class="sold-out-badge">
               OUT OF STOCK
             </div>
@@ -178,7 +176,6 @@ const {
   getProducts,
 } = useProduct();
 
-// 👇 now also using cart items (same as product detail page)
 const { addItem, items } = useCart();
 
 const loading = computed(
@@ -187,7 +184,6 @@ const loading = computed(
 
 const error = computed(() => categoriesError.value || productsError.value);
 
-// 🔹 Sections: categories + their active products
 const sections = computed(() =>
   categories.value
     .map((cat) => ({
@@ -199,15 +195,12 @@ const sections = computed(() =>
     .filter((section) => section.items.length > 0)
 );
 
-// =======================
+
 //  Quantity selector state
-// =======================
 const activeQtyProductId = ref<string | null>(null);
 const qty = ref(1);
 
-// ---- Limits & cart-aware remaining ----
 
-// Base max per order from product data only
 const maxPerOrder = (p: any) => {
   const cap = typeof p.dailyCapacity === "number" ? p.dailyCapacity : Infinity;
   const stock = typeof p.stock === "number" ? p.stock : Infinity;
@@ -215,7 +208,6 @@ const maxPerOrder = (p: any) => {
   return max === Infinity ? 99 : max;
 };
 
-// How many of that product are already in cart (global cart)
 const alreadyInCart = (p: any) => {
   if (!items?.value) return 0;
   const id = p._id;
@@ -228,7 +220,6 @@ const alreadyInCart = (p: any) => {
   }, 0);
 };
 
-// Remaining pieces user can still add for this product
 const remainingForProduct = (p: any) => {
   const baseMax = maxPerOrder(p);
   const used = alreadyInCart(p);
@@ -236,10 +227,9 @@ const remainingForProduct = (p: any) => {
   return remaining > 0 ? remaining : 0;
 };
 
-// when clicking "Add to cart"
 const openQtySelector = (product: any) => {
   const remaining = remainingForProduct(product);
-  if (remaining <= 0) return; // fully used
+  if (remaining <= 0) return; 
 
   activeQtyProductId.value = product._id;
   qty.value = 1;
@@ -254,8 +244,7 @@ const confirmAddToCart = (product: any) => {
 
   addItem(product, qty.value);
 
-  // after adding, cart updates; remainingForProduct will recompute automatically
-  activeQtyProductId.value = null; // hide selector
+  activeQtyProductId.value = null; 
 };
 
 onMounted(async () => {
@@ -273,7 +262,7 @@ onMounted(async () => {
 /* ===== BACK BUTTON ===== */
 .back-btn {
   position: fixed;
-  top: 100px; /* below navbar */
+  top: 100px; 
   left: 25px;
   width: 48px;
   height: 48px;
@@ -294,14 +283,12 @@ onMounted(async () => {
   transform: scale(1.07);
 }
 
-/* Arrow icon inside circle */
 .arrow-icon {
   width: 22px;
   height: 22px;
   color: white;
 }
 
-/* ===== ORDER PAGE HEADER ===== */
 .order-header {
   text-align: center;
   background: #f4f4f4;
@@ -341,7 +328,6 @@ onMounted(async () => {
   letter-spacing: 2px;
 }
 
-/* 👇 NEW: times text */
 .category-times {
   margin-left: 1.1rem;
   margin-bottom: 1.8rem;
@@ -394,22 +380,20 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-/* ✅ ONLY overlay the card, no opacity on the card itself */
 .product-card.sold-out::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25); /* dark transparent layer */
+  background: rgba(0, 0, 0, 0.25); 
   pointer-events: none;
-  z-index: 1; /* above content, below badge */
+  z-index: 1; 
 }
 
-/* ✅ Badge stays FULLY visible */
 .sold-out-badge {
   position: absolute;
   top: 10px;
   left: 12px;
-  z-index: 2; /* above overlay */
+  z-index: 2;
   background: #b91c1c;
   color: #fff;
   font-size: 0.7rem;
@@ -420,7 +404,6 @@ onMounted(async () => {
   text-transform: uppercase;
 }
 
-/* Placeholder image box */
 .product-image {
   width: 100%;
   height: 230px;
@@ -436,7 +419,6 @@ onMounted(async () => {
   display: block;
 }
 
-/* Product name */
 .product-name {
   margin-top: 1rem;
   font-size: 1.4rem;
@@ -444,7 +426,6 @@ onMounted(async () => {
   font-weight: 700;
 }
 
-/* Price */
 .product-price {
   margin: 0.4rem 0 1rem;
   font-size: 1.2rem;
@@ -529,7 +510,8 @@ onMounted(async () => {
   text-decoration: underline;
   cursor: pointer;
 }
-/* ✅ Make grid 2 columns on small screens instead of 1 */
+
+
 @media (max-width: 600px) {
   .products {
     padding: 2.5rem 1rem;
@@ -579,7 +561,6 @@ onMounted(async () => {
     gap: 6px;
   }
 
-  /* keep - [input] + on one line */
   .qty-btn,
   .qty-input {
     margin-bottom: 0;
@@ -591,7 +572,6 @@ onMounted(async () => {
     font-size: 0.9rem;
   }
 
-  /* make confirm full-width under the counter */
   .confirm-btn {
     flex: 0 0 100%;
     margin-top: 4px;
@@ -599,7 +579,6 @@ onMounted(async () => {
     font-size: 0.9rem;
   }
 
-  /* cancel link centered below */
   .cancel-link {
     flex: 0 0 100%;
     text-align: center;
@@ -608,7 +587,6 @@ onMounted(async () => {
   }
 }
 
-/* Optional: slightly smaller header on tablets */
 @media (max-width: 900px) {
   .order-title {
     font-size: 3.5rem;

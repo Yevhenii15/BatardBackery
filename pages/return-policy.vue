@@ -171,7 +171,7 @@ import FooterView from "~/components/FooterView.vue";
   padding-bottom: 4rem;
 }
 
-/* ===== BACK BUTTON (white style) ===== */
+
 .back-btn {
   position: fixed;
   top: 100px;
