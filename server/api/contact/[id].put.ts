@@ -40,12 +40,11 @@ export default defineEventHandler(async (event) => {
 
   const update: any = { ...input };
 
-  // if status is being changed, maintain closedAt
   if (input.status) {
     if (input.status === "closed") {
-      update.closedAt = new Date(); // start 30-day countdown
+      update.closedAt = new Date(); 
     } else {
-      update.closedAt = null; // reopen -> no TTL
+      update.closedAt = null; 
     }
   }
 
