@@ -1,7 +1,6 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import { join } from "path";
 
-// Use project root so paths work in Nuxt/Nitro
 const apisGlob = join(process.cwd(), "server/api/**/*.ts");
 
 export const swaggerSpec = swaggerJSDoc({
