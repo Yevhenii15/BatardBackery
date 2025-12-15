@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 404);
     return { message: "Hero section not found" };
   }
-  // optional: short caching to improve performance
   setHeader(event, "Cache-Control", "public, max-age=30");
   return hero;
 });
