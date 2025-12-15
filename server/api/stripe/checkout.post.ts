@@ -1,4 +1,3 @@
-// server/api/stripe/checkout.post.ts
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
@@ -10,7 +9,7 @@ export default defineEventHandler(async (event) => {
   }>(event);
 
   const config = useRuntimeConfig();
-  const baseUrl = config.public.baseUrl || "http://localhost:3000"; // fallback for dev
+  const baseUrl = config.public.baseUrl || "http://localhost:3000"; 
 
   const lineItems = body.items.map((item) => ({
     price_data: {

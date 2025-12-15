@@ -1,4 +1,3 @@
-// server/api/upload.post.ts
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -15,7 +14,6 @@ export default defineEventHandler(async (event) => {
 
   const formData = await readMultipartFormData(event);
 
-  // 🟡 Add this log here — right after reading form data
   console.log(
     formData?.map((p) => ({
       name: p.name,
@@ -29,7 +27,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "No form data" });
   }
 
-  // Now your normal logic
   const filePart = formData.find((p) => p.filename && p.name === "file");
   if (!filePart) {
     throw createError({ statusCode: 400, statusMessage: "No file uploaded" });
