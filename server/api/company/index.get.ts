@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 404);
     return { message: "Company info not found" };
   }
-  // optional: tiny cache
   setHeader(event, "Cache-Control", "public, max-age=30");
   return company;
 });
