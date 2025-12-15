@@ -22,7 +22,7 @@ const ContactSchema = new Schema(
   { timestamps: true }
 );
 
-// TTL index: delete 30 days after closedAt
+
 // 30 days * 24h * 60m * 60s = 2 592 000 seconds
 ContactSchema.index({ closedAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 30 });
 
