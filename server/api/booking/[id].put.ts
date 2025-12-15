@@ -49,7 +49,6 @@ export default defineEventHandler(async (event) => {
     return { message: "Booking not found" };
   }
 
-  // 🔹 Remember old status before changes
   const previousStatus = booking.status;
 
   if (input.status) {
@@ -65,7 +64,6 @@ export default defineEventHandler(async (event) => {
     }
 
     if (input.status === "pending" || input.status === "confirmed") {
-      // if you ever "reopen" a booking
       booking.archived = false;
       booking.set("archivedAt", null);
     }
@@ -76,7 +74,6 @@ export default defineEventHandler(async (event) => {
     booking.set("archivedAt", input.archived ? new Date() : null);
   }
 
-  // 🔹 Decide if we need to adjust stock based on status transition
   const newStatus = booking.status;
 
   const wentToCancelled =
@@ -86,7 +83,7 @@ export default defineEventHandler(async (event) => {
     previousStatus === "cancelled" && newStatus !== "cancelled";
 
   if (wentToCancelled || leftCancelled) {
-    const sign = wentToCancelled ? +1 : -1; // +1 return stock, -1 use stock again
+    const sign = wentToCancelled ? +1 : -1; 
 
     const qtyByProduct = new Map<string, number>();
 

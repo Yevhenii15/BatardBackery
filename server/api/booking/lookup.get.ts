@@ -1,4 +1,3 @@
-// server/api/booking/lookup.get.ts
 import Booking from "../../models/Booking";
 
 function escapeRegex(value: string) {
@@ -16,7 +15,6 @@ export default defineEventHandler(async (event) => {
     return { message: "bookingNumber and lastName are required" };
   }
 
-  // Case-insensitive match on last name
   const booking = await Booking.findOne({
     bookingNumber,
     "customer.lastName": {

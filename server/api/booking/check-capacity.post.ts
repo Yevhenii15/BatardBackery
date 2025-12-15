@@ -1,4 +1,3 @@
-// server/api/booking/check-capacity.post.ts
 import Booking from "../../models/Booking";
 import Product from "../../models/Product";
 import { Types } from "mongoose";
@@ -9,7 +8,7 @@ interface BodyItem {
 
 interface CheckCapacityBody {
   date: string; // "2025-11-28"
-  items: BodyItem[]; // products currently in the cart (can be many)
+  items: BodyItem[]; // products currently in the cart
 }
 
 export default defineEventHandler(async (event) => {
@@ -25,11 +24,9 @@ export default defineEventHandler(async (event) => {
     (id) => new Types.ObjectId(id)
   );
 
-  // 🔥 PER-DAY capacity:
-  // - we only match bookings that have at least one pickup with THIS date
-  // - then we sum *all* items in those bookings, grouped by productId
+ 
   const existing = await Booking.aggregate([
-    { $match: { "pickups.date": date } }, // all bookings for that date
+    { $match: { "pickups.date": date } }, 
     { $unwind: "$items" },
     {
       $group: {
@@ -75,6 +72,5 @@ export default defineEventHandler(async (event) => {
     };
   }
 
-  // byProduct contains an entry for EACH product in cart
   return { ok: true, byProduct: result };
 });

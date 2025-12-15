@@ -30,7 +30,6 @@ export default defineEventHandler(async (event) => {
     return { message: "Booking not found" };
   }
 
-  // 🔹 If booking is not cancelled yet, return stock before deleting
   if (booking.status !== "cancelled") {
     const qtyByProduct = new Map<string, number>();
 
