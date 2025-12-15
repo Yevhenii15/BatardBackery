@@ -27,7 +27,6 @@ export default defineEventHandler(async (event) => {
     return { message: "No categories found" };
   }
 
-  // optional caching
   setHeader(event, "Cache-Control", "public, max-age=30");
 
   return categories;
