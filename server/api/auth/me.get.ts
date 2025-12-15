@@ -12,7 +12,7 @@ export default defineEventHandler((event) => {
 
     return {
       user: {
-        _id: payload.sub, // 🔥 MUST MATCH login route
+        _id: payload.sub, 
         email: payload.email,
       },
     };
