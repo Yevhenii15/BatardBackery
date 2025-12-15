@@ -26,7 +26,7 @@ import { ContactInfoInput } from "../../validation/ContactInfo";
 import { requireAdmin } from "../../utils/auth";
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event); // admin-only
+  requireAdmin(event);
 
   const body = await readBody(event);
   const input = ContactInfoInput.parse(body);
