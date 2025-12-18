@@ -1,96 +1,23 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { Booking } from "~/composables/useBooking";
+import { useRevenue } from "~/composables/useRevenue";
 
-const props = defineProps<{
-  bookings: Booking[];
-}>();
+const props = defineProps<{ bookings: Booking[] }>();
 
-// local collapse state (same idea as BookingTable)
 const collapsed = ref(false);
 
-// We treat all bookings that are NOT "cancelled" as revenue
-const revenueBookings = computed(() =>
-  props.bookings.filter((b) => b.status !== "cancelled")
-);
+const bookingsRef = computed(() => props.bookings);
 
-const bookingTotal = (b: Booking): number => {
-  if (!b.items || !Array.isArray(b.items)) return 0;
-
-  return b.items.reduce((sum, item) => {
-    const price = typeof item.price === "number" ? item.price : 0;
-    const qty = typeof item.quantity === "number" ? item.quantity : 1;
-    return sum + price * qty;
-  }, 0);
-};
-
-const totalOrders = computed(() => revenueBookings.value.length);
-
-const totalRevenue = computed(() =>
-  revenueBookings.value.reduce((sum, b) => sum + bookingTotal(b), 0)
-);
-
-const totalItemsSold = computed(() =>
-  revenueBookings.value.reduce((sum, b) => {
-    if (!b.items || !Array.isArray(b.items)) return sum;
-    return (
-      sum + b.items.reduce((inner, item) => inner + (item.quantity ?? 1), 0)
-    );
-  }, 0)
-);
-
-const averageOrderValue = computed(() =>
-  totalOrders.value ? totalRevenue.value / totalOrders.value : 0
-);
-
-// Revenue by category using booking.pickups[pickupIndex].categoryName
-const revenueByCategory = computed(() => {
-  const map = new Map<string, { revenue: number; qty: number }>();
-
-  for (const b of revenueBookings.value) {
-    const items = b.items || [];
-    const pickups = b.pickups || [];
-
-    for (const item of items) {
-      const pickup = pickups[item.pickupIndex];
-      const catName = pickup?.categoryName || "Uncategorized";
-
-      const price = typeof item.price === "number" ? item.price : 0;
-      const qty = typeof item.quantity === "number" ? item.quantity : 1;
-
-      const current = map.get(catName) ?? { revenue: 0, qty: 0 };
-      current.revenue += price * qty;
-      current.qty += qty;
-      map.set(catName, current);
-    }
-  }
-
-  return Array.from(map.entries()).sort((a, b) => b[1].revenue - a[1].revenue);
-});
-
-// Revenue by product
-const revenueByProduct = computed(() => {
-  const map = new Map<string, { revenue: number; qty: number }>();
-
-  for (const b of revenueBookings.value) {
-    const items = b.items || [];
-    for (const item of items as any[]) {
-      const name = item.name || "Unknown product";
-
-      const price = typeof item.price === "number" ? item.price : 0;
-      const qty = typeof item.quantity === "number" ? item.quantity : 1;
-
-      const current = map.get(name) ?? { revenue: 0, qty: 0 };
-      current.revenue += price * qty;
-      current.qty += qty;
-      map.set(name, current);
-    }
-  }
-
-  return Array.from(map.entries()).sort((a, b) => b[1].revenue - a[1].revenue);
-});
-
-const formatCurrency = (value: number) => `${value.toFixed(2)} DKK`;
+const {
+  totalOrders,
+  totalRevenue,
+  totalItemsSold,
+  averageOrderValue,
+  revenueByCategory,
+  revenueByProduct,
+  formatCurrency,
+} = useRevenue(bookingsRef);
 </script>
 
 <template>

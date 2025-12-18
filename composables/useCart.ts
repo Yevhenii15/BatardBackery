@@ -29,9 +29,7 @@ const loadFromStorage = () => {
 
   try {
     const parsed = JSON.parse(raw) as CartItem[];
-    if (Array.isArray(parsed)) {
-      items.value = parsed;
-    }
+    if (Array.isArray(parsed)) items.value = parsed;
   } catch (e) {
     console.error("Failed to parse cart from storage", e);
   }
@@ -46,6 +44,22 @@ const saveToStorage = () => {
   }
 };
 
+//  Shared limit logic (used everywhere)
+const maxPerOrder = (p: Product | CartItem) => {
+  const cap =
+    typeof (p as any).dailyCapacity === "number"
+      ? (p as any).dailyCapacity
+      : Infinity;
+
+  const stock =
+    typeof (p as any).stock === "number" ? (p as any).stock : Infinity;
+
+  const max = Math.min(cap, stock);
+
+  // consistent with your pages: Infinity -> 99 fallback
+  return max === Infinity ? 99 : max;
+};
+
 export function useCart() {
   loadFromStorage();
 
@@ -57,25 +71,28 @@ export function useCart() {
     items.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
   );
 
-  const calcMaxForProduct = (product: Product | CartItem) => {
-    const cap =
-      typeof (product as any).dailyCapacity === "number"
-        ? (product as any).dailyCapacity
-        : Infinity;
-    const stock =
-      typeof (product as any).stock === "number"
-        ? (product as any).stock
-        : Infinity;
-    return Math.min(cap, stock);
+  //  How many pieces of a product are already in the cart
+  const alreadyInCart = (productId: string) =>
+    items.value.reduce((sum, item) => {
+      return item.productId === productId ? sum + item.quantity : sum;
+    }, 0);
+
+  //  Remaining pieces user can still add (based on capacity/stock and cart)
+  const remainingForProduct = (p: Product | CartItem) => {
+    const id = (p as any)._id || (p as any).productId;
+    const max = maxPerOrder(p);
+    const used = alreadyInCart(id);
+    return Math.max(0, max - used);
   };
 
   const addItem = (product: Product, quantity = 1) => {
     const existing = items.value.find((i) => i.productId === product._id);
 
-    const max = calcMaxForProduct(product);
+    // max allowed for this product today
+    const max = maxPerOrder(product);
 
     if (existing) {
-      
+      // store limits in cart item if missing
       if (existing.dailyCapacity === undefined) {
         existing.dailyCapacity = product.dailyCapacity;
       }
@@ -107,7 +124,7 @@ export function useCart() {
     const item = items.value.find((i) => i.productId === productId);
     if (!item) return;
 
-    const max = calcMaxForProduct(item);
+    const max = maxPerOrder(item);
     const safeQty = Math.min(quantity, max);
 
     if (safeQty <= 0) {
@@ -133,6 +150,12 @@ export function useCart() {
     items,
     totalItems,
     totalPrice,
+
+    //  exported helpers so pages don’t duplicate logic
+    maxPerOrder,
+    alreadyInCart,
+    remainingForProduct,
+
     addItem,
     setQuantity,
     removeItem,

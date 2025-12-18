@@ -176,7 +176,8 @@ const {
   getProducts,
 } = useProduct();
 
-const { addItem, items } = useCart();
+// cart helpers now come from composable
+const { addItem, remainingForProduct } = useCart();
 
 const loading = computed(
   () => categoriesLoading.value || productsLoading.value
@@ -184,6 +185,7 @@ const loading = computed(
 
 const error = computed(() => categoriesError.value || productsError.value);
 
+// Group products by category
 const sections = computed(() =>
   categories.value
     .map((cat) => ({
@@ -195,46 +197,19 @@ const sections = computed(() =>
     .filter((section) => section.items.length > 0)
 );
 
-
-//  Quantity selector state
+// Quantity selector state
 const activeQtyProductId = ref<string | null>(null);
 const qty = ref(1);
 
-
-const maxPerOrder = (p: any) => {
-  const cap = typeof p.dailyCapacity === "number" ? p.dailyCapacity : Infinity;
-  const stock = typeof p.stock === "number" ? p.stock : Infinity;
-  const max = Math.min(cap, stock);
-  return max === Infinity ? 99 : max;
-};
-
-const alreadyInCart = (p: any) => {
-  if (!items?.value) return 0;
-  const id = p._id;
-
-  return items.value.reduce((sum: number, item: any) => {
-    const itemProductId =
-      item.product?._id || item.productId || item._id || item.id;
-    const q = item.quantity ?? item.qty ?? 0;
-    return itemProductId === id ? sum + q : sum;
-  }, 0);
-};
-
-const remainingForProduct = (p: any) => {
-  const baseMax = maxPerOrder(p);
-  const used = alreadyInCart(p);
-  const remaining = baseMax - used;
-  return remaining > 0 ? remaining : 0;
-};
-
+// Open quantity selector
 const openQtySelector = (product: any) => {
-  const remaining = remainingForProduct(product);
-  if (remaining <= 0) return; 
+  if (remainingForProduct(product) <= 0) return;
 
   activeQtyProductId.value = product._id;
   qty.value = 1;
 };
 
+// Confirm add to cart
 const confirmAddToCart = (product: any) => {
   const remaining = remainingForProduct(product);
   if (remaining <= 0) return;
@@ -243,8 +218,7 @@ const confirmAddToCart = (product: any) => {
   if (qty.value <= 0) return;
 
   addItem(product, qty.value);
-
-  activeQtyProductId.value = null; 
+  activeQtyProductId.value = null;
 };
 
 onMounted(async () => {
@@ -262,7 +236,7 @@ onMounted(async () => {
 /* ===== BACK BUTTON ===== */
 .back-btn {
   position: fixed;
-  top: 100px; 
+  top: 100px;
   left: 25px;
   width: 48px;
   height: 48px;
@@ -384,9 +358,9 @@ onMounted(async () => {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25); 
+  background: rgba(0, 0, 0, 0.25);
   pointer-events: none;
-  z-index: 1; 
+  z-index: 1;
 }
 
 .sold-out-badge {
@@ -510,7 +484,6 @@ onMounted(async () => {
   text-decoration: underline;
   cursor: pointer;
 }
-
 
 @media (max-width: 600px) {
   .products {

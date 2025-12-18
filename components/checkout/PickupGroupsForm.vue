@@ -99,6 +99,7 @@ const props = defineProps<{
 
 <style scoped>
 .card {
+  height: auto;
   background: #fff;
   border-radius: 12px;
   padding: 1.5rem 1.75rem;

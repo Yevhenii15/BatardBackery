@@ -39,6 +39,7 @@ export function useHero() {
       });
 
       hero.value = updated;
+      alert("Company information updated successfully.");
       return true;
     } catch (err: any) {
       error.value =

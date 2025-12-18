@@ -37,10 +37,8 @@
         <p class="price">{{ product.price.toFixed(2) }} DKK</p>
 
         <!-- Availability info -->
-        <p class="availability" v-if="maxPerOrder > 0">
-          Available today:
-          <strong>{{ remaining }}</strong>
-          / {{ maxPerOrder }}
+        <p class="availability" v-if="remaining > 0">
+          Available today: <strong>{{ remaining }}</strong>
         </p>
         <p class="availability sold" v-else>Out of stock for today</p>
 
@@ -152,7 +150,9 @@ const route = useRoute();
 const router = useRouter();
 
 const { product, loading, error, getProductById } = useProduct();
-const { addItem, items } = useCart();
+
+// ✅ useCart now provides remainingForProduct
+const { addItem, remainingForProduct } = useCart();
 
 // categories (for pickup times)
 const { categories, getCategories } = useCategory();
@@ -167,45 +167,17 @@ onMounted(async () => {
   ]);
 });
 
-// ===== Quantity + limits =====
+// ===== Quantity selector state =====
 const qty = ref(1);
 const showSelector = ref(false);
 
-// Base max allowed by product fields (dailyCapacity + stock)
-const maxPerOrder = computed(() => {
-  if (!product.value) return 0;
-  const p: any = product.value;
-
-  const cap =
-    typeof p.dailyCapacity === "number"
-      ? p.dailyCapacity
-      : Number.POSITIVE_INFINITY;
-  const stock =
-    typeof p.stock === "number" ? p.stock : Number.POSITIVE_INFINITY;
-
-  const max = Math.min(cap, stock);
-  return max === Number.POSITIVE_INFINITY ? 99 : max; 
-});
-
-const alreadyInCart = computed(() => {
-  if (!product.value) return 0;
-  const id = (product.value as any)._id;
-
-  if (!items?.value) return 0;
-
-  return items.value.reduce((sum: number, item: any) => {
-    const itemProductId =
-      item.product?._id || item.productId || item._id || item.id;
-    const itemQty = item.quantity ?? item.qty ?? 0;
-    return itemProductId === id ? sum + itemQty : sum;
-  }, 0);
-});
-
+// ✅ Remaining allowed today (capacity/stock minus already in cart)
 const remaining = computed(() => {
-  const rem = maxPerOrder.value - alreadyInCart.value;
-  return rem > 0 ? rem : 0;
+  if (!product.value) return 0;
+  return remainingForProduct(product.value as any);
 });
 
+// 🔹 Category of this product
 const productCategory = computed<Category | null>(() => {
   if (!product.value) return null;
   return (
@@ -213,6 +185,7 @@ const productCategory = computed<Category | null>(() => {
   );
 });
 
+// 🔹 Texts for pickup times
 const weekdayTimesText = computed(() => {
   if (!productCategory.value) return "";
   const { weekdayTime } = productCategory.value;
@@ -238,12 +211,14 @@ const openSelector = () => {
 // Confirm add to cart
 const confirmAddToCart = () => {
   if (!product.value) return;
-  if (remaining.value <= 0) return;
 
-  if (qty.value > remaining.value) qty.value = remaining.value;
+  const rem = remaining.value;
+  if (rem <= 0) return;
+
+  if (qty.value > rem) qty.value = rem;
   if (qty.value <= 0) return;
 
-  addItem(product.value, qty.value);
+  addItem(product.value as any, qty.value);
   showSelector.value = false;
 };
 </script>

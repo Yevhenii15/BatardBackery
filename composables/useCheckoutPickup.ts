@@ -4,7 +4,7 @@ import type { CartItem } from "./useCart";
 import type { Category } from "./useCategory";
 
 export interface PickupGroupState {
-  key: string; 
+  key: string;
   categoryIds: string[];
   categoryNames: string;
   items: CartItem[];
@@ -18,9 +18,7 @@ export function useCheckoutPickup(
   categories: Ref<Category[]>
 ) {
   const today = new Date().toISOString().slice(0, 10);
-
   const pickupDate = ref<string>(today);
-
   const pickupGroups = ref<PickupGroupState[]>([]);
 
   const rebuildPickupGroups = () => {
@@ -75,6 +73,13 @@ export function useCheckoutPickup(
     return [h || 0, m || 0];
   };
 
+  // ✅ rounds to next slot boundary (keeps slots like 13:00, 13:15, 13:30...)
+  const roundUpToSlot = (value: number, origin: number, step: number) => {
+    const diff = value - origin;
+    if (diff <= 0) return origin;
+    return origin + Math.ceil(diff / step) * step;
+  };
+
   const timeSlots = (group: PickupGroupState): string[] => {
     if (!group.date) return [];
 
@@ -98,12 +103,16 @@ export function useCheckoutPickup(
     const slotSize = cat.slotSizeMinutes || 15;
     const lead = cat.leadTimeMinutes || 0;
 
-
+    // ✅ TODAY: apply lead time and then round up to next allowed slot
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
     if (group.date === todayStr) {
       const nowMinutes = now.getHours() * 60 + now.getMinutes() + lead;
-      if (nowMinutes > start) start = nowMinutes;
+      start = roundUpToSlot(
+        Math.max(start, nowMinutes),
+        fromH * 60 + fromM,
+        slotSize
+      );
     }
 
     if (start > end) return [];
@@ -118,13 +127,7 @@ export function useCheckoutPickup(
     return slots;
   };
 
-  watch(
-    [items, categories],
-    () => {
-      rebuildPickupGroups();
-    },
-    { immediate: true }
-  );
+  watch([items, categories], rebuildPickupGroups, { immediate: true });
 
   watch(
     pickupDate,

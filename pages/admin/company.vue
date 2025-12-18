@@ -26,12 +26,7 @@ const handleCompanySubmit = async (payload: {
   await updateCompany(payload);
 };
 
-const handleHeroSubmit = async (payload: {
-  Title: string;
-  Subtitle: string;
-  ImagePrimary: string;
-  ImageSecondary: string;
-}) => {
+const handleHeroSubmit = async (payload: HeroSection) => {
   await updateHero(payload);
 };
 </script>
